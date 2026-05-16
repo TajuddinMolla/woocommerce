@@ -133,9 +133,7 @@ export function useQueryParams() {
 
       const search = buildSearch(next);
 
-      console.log(search, "search");
-
-      router.replace(`${pathname}${search}`, {
+      router.push(`${pathname}${search}`, {
         scroll: false,
       });
     },
@@ -143,7 +141,7 @@ export function useQueryParams() {
   );
 
   const clearAll = useCallback(() => {
-    router.replace(pathname, {
+    router.push(pathname, {
       scroll: false,
     });
   }, [pathname, router]);
