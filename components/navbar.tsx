@@ -20,7 +20,7 @@ type NavItem = {
 const navLinks: NavItem[] = [
   {
     label: "New Arrivals",
-    href: "#",
+    href: "/products?sort=newest",
   },
   {
     label: "Women",

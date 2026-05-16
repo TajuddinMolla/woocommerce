@@ -45,7 +45,7 @@ export function ProductToolbar({
           <SelectTrigger className="h-9 w-44 text-sm">
             <SelectValue placeholder="Sort by" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="bg-background">
             {SORT_OPTIONS.map((o) => (
               <SelectItem key={o.value} value={o.value}>
                 {o.label}
