@@ -6,8 +6,27 @@
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-background: #f8fafc; /* slate-50 */
+  --color-foreground: #0f172a; /* slate-900 */
+
+  --color-border: #d6d3d1; /* stone-300 */
+  --color-input: #e7e5e4; /* stone-200 */
+
+  --color-primary: #d97706;
+  --color-primary-foreground: #ffffff;
+
+  --color-secondary: #e7e5e4; /* stone-200 */
+  --color-secondary-foreground: #1c1917; /* stone-900 */
+
+  --color-muted: #78716c; /* stone-500 */
+  --color-muted-foreground: #57534e; /* stone-600 */
+
+  --color-card: #ffffff;
+  --color-card-foreground: #0f172a;
+
+  --color-accent: #64748b; /* slate-500 */
+  --color-accent-foreground: #ffffff;
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
