@@ -40,7 +40,7 @@ export default function ProductDetailPage() {
         title="Product not found."
         description="The product you are looking for does not exist."
       >
-        <Link href="/" className="text-primary hover:underline">
+        <Link href="/products" className="text-primary hover:underline">
           Browse all products
         </Link>
       </EmptyState>

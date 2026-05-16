@@ -30,7 +30,7 @@ export default function SubCategoryPage() {
         title="Subcategory not found."
         description="The subcategory you are looking for does not exist."
       >
-        <Link href="/" className="text-primary hover:underline">
+        <Link href="/products" className="text-primary hover:underline">
           Browse all products
         </Link>
       </EmptyState>

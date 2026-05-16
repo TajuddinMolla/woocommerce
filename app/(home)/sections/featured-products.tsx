@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { Heart, ShoppingBag, Star } from "lucide-react";
+import { Eye, Heart, ShoppingBag, Star } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -197,12 +197,15 @@ export default function FeaturedProducts() {
                   />
                 </button>
 
-                {/* Add to cart overlay */}
+                {/* View details overlay */}
                 <div className="absolute bottom-0 left-0 right-0 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-                  <button className="w-full bg-stone-900 text-white py-3 text-sm font-semibold flex items-center justify-center gap-2 hover:bg-stone-700 transition-colors">
-                    <ShoppingBag size={15} />
-                    Add to Bag
-                  </button>
+                  <Link
+                    href={`/products/slug`}
+                    className="w-full bg-stone-900 text-white py-3 text-sm font-semibold flex items-center justify-center gap-2 hover:bg-stone-700 transition-colors"
+                  >
+                    <Eye size={15} />
+                    View Details
+                  </Link>
                 </div>
               </div>
 
