@@ -1,5 +1,6 @@
 import { ArrowRight } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 
 export default function Banner() {
   return (
@@ -26,8 +27,8 @@ export default function Banner() {
               >
                 Summer Edit 2026
               </h3>
-              <a
-                href="#"
+              <Link
+                href="/products"
                 className="inline-flex items-center gap-2 bg-white text-stone-900 px-6 py-2.5 rounded-full text-sm font-semibold hover:bg-amber-400 transition-all duration-300 group/btn"
               >
                 Shop Collection
@@ -35,7 +36,7 @@ export default function Banner() {
                   size={14}
                   className="transition-transform duration-300 group-hover/btn:translate-x-1"
                 />
-              </a>
+              </Link>
             </div>
           </div>
 
@@ -61,12 +62,12 @@ export default function Banner() {
                 >
                   Summer Sale
                 </h3>
-                <a
-                  href="#"
+                <Link
+                  href="/products"
                   className="inline-flex items-center gap-1 text-sm text-white font-semibold underline underline-offset-4 hover:text-rose-300 transition-colors w-fit"
                 >
                   Shop Sale <ArrowRight size={13} />
-                </a>
+                </Link>
               </div>
             </div>
 
@@ -89,12 +90,12 @@ export default function Banner() {
                 >
                   Accessories Edit
                 </h3>
-                <a
-                  href="#"
+                <Link
+                  href="/products"
                   className="inline-flex items-center gap-1 text-sm text-white font-semibold underline underline-offset-4 hover:text-amber-400 transition-colors w-fit"
                 >
                   Explore Now <ArrowRight size={13} />
-                </a>
+                </Link>
               </div>
             </div>
           </div>

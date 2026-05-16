@@ -81,7 +81,7 @@ export default function ProductDetailPage() {
           </Link>
           <span>/</span>
           <Link
-            href={`/category/${encodeURIComponent(product.category)}`}
+            href={`/categories/${encodeURIComponent(product.category)}`}
             className="hover:text-foreground transition-colors"
           >
             {product.category}
@@ -159,7 +159,7 @@ export default function ProductDetailPage() {
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <Link
-                    href={`/category/${encodeURIComponent(product.category)}`}
+                    href={`/categories/${encodeURIComponent(product.category)}`}
                     className="text-sm text-primary font-medium hover:underline"
                   >
                     {product.category}
@@ -413,7 +413,7 @@ export default function ProductDetailPage() {
             <div className="flex items-center justify-between mb-5">
               <h2 className="text-xl font-bold">More in {product.category}</h2>
               <Link
-                href={`/category/${encodeURIComponent(product.category)}`}
+                href={`/categories/${encodeURIComponent(product.category)}`}
                 className="text-sm text-primary hover:underline"
               >
                 View all →

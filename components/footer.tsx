@@ -1,4 +1,5 @@
 import { X } from "lucide-react";
+import Link from "next/link";
 
 const footerLinks = {
   Shop: ["New Arrivals", "Women", "Men", "Accessories", "Footwear", "Sale"],
@@ -30,7 +31,7 @@ export default function Footer() {
               className="text-2xl font-bold text-white"
               style={{ fontFamily: "'Playfair Display', serif" }}
             >
-              LUMIÈRE
+              WooCommerce
             </span>
             <p className="text-sm mt-4 leading-relaxed max-w-xs">
               Premium fashion for the modern individual. Crafted with care,
@@ -38,14 +39,14 @@ export default function Footer() {
             </p>
             <div className="flex gap-3 mt-6">
               {socials.map(({ icon: Icon, label }) => (
-                <a
+                <Link
                   key={label}
-                  href="#"
+                  href="/"
                   aria-label={label}
                   className="w-9 h-9 rounded-full bg-stone-800 flex items-center justify-center hover:bg-amber-500 hover:text-white transition-all duration-200 text-stone-400"
                 >
                   <Icon size={16} />
-                </a>
+                </Link>
               ))}
             </div>
           </div>
@@ -59,12 +60,12 @@ export default function Footer() {
               <ul className="space-y-3">
                 {links.map((link) => (
                   <li key={link}>
-                    <a
-                      href="#"
+                    <Link
+                      href="/"
                       className="text-sm hover:text-white transition-colors duration-200"
                     >
                       {link}
-                    </a>
+                    </Link>
                   </li>
                 ))}
               </ul>
@@ -93,15 +94,15 @@ export default function Footer() {
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-8">
           <p className="text-xs">&copy; 2026 LUMIÈRE. All rights reserved.</p>
           <div className="flex gap-5 text-xs">
-            <a href="#" className="hover:text-white transition-colors">
+            <Link href="#" className="hover:text-white transition-colors">
               Privacy Policy
-            </a>
-            <a href="#" className="hover:text-white transition-colors">
+            </Link>
+            <Link href="#" className="hover:text-white transition-colors">
               Terms of Service
-            </a>
-            <a href="#" className="hover:text-white transition-colors">
+            </Link>
+            <Link href="#" className="hover:text-white transition-colors">
               Cookie Settings
-            </a>
+            </Link>
           </div>
         </div>
       </div>

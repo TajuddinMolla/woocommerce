@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { Heart, ShoppingBag, Star } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 
 const filters = ["All", "New In", "Bestsellers", "Sale"];
 
@@ -232,12 +233,12 @@ export default function FeaturedProducts() {
         </div>
 
         <div className="text-center mt-12">
-          <a
-            href="#"
+          <Link
+            href="/products"
             className="inline-flex items-center justify-center gap-2 border-2 border-stone-900 text-stone-900 px-10 py-4 rounded-full text-sm font-semibold tracking-wide hover:bg-stone-900 hover:text-white transition-all duration-300"
           >
             Load More Products
-          </a>
+          </Link>
         </div>
       </div>
     </section>

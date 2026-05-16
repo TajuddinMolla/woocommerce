@@ -1,5 +1,6 @@
 import { ArrowRight } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 
 export default function Hero() {
   return (
@@ -24,8 +25,8 @@ export default function Hero() {
               style, conscious materials, effortless wear.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
-              <a
-                href="#featured"
+              <Link
+                href="/products"
                 className="inline-flex items-center justify-center gap-2 bg-stone-900 text-white px-8 py-4 rounded-full text-sm font-semibold tracking-wide hover:bg-stone-700 transition-all duration-300 hover:gap-4 group"
               >
                 Shop Now
@@ -33,13 +34,13 @@ export default function Hero() {
                   size={16}
                   className="transition-transform duration-300 group-hover:translate-x-1"
                 />
-              </a>
-              <a
-                href="#"
+              </Link>
+              <Link
+                href="/products"
                 className="inline-flex items-center justify-center gap-2 border border-stone-300 text-stone-800 px-8 py-4 rounded-full text-sm font-semibold tracking-wide hover:border-stone-900 transition-all duration-300"
               >
-                View Lookbook
-              </a>
+                View Products
+              </Link>
             </div>
 
             {/* Stats */}

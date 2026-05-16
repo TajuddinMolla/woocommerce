@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 
 const categories = [
   {
@@ -47,19 +48,19 @@ export default function Categories() {
               Category
             </h2>
           </div>
-          <a
-            href="#"
+          <Link
+            href="/categories"
             className="hidden sm:inline-flex text-sm font-medium text-stone-600 hover:text-stone-900 underline underline-offset-4 transition-colors"
           >
             View all categories
-          </a>
+          </Link>
         </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {categories.map((cat) => (
-            <a
+            <Link
               key={cat.label}
-              href="#"
+              href={`/categories/${encodeURIComponent(cat.label)}`}
               className="group relative rounded-2xl overflow-hidden aspect-3/4 cursor-pointer"
             >
               <Image
@@ -82,7 +83,7 @@ export default function Categories() {
                 <div className="text-stone-300 text-xs mt-1">{cat.count}</div>
               </div>
               <div className="absolute inset-0 ring-2 ring-transparent group-hover:ring-amber-400 rounded-2xl transition-all duration-300" />
-            </a>
+            </Link>
           ))}
         </div>
       </div>
