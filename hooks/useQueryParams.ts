@@ -133,6 +133,8 @@ export function useQueryParams() {
 
       const search = buildSearch(next);
 
+      console.log(search, "search");
+
       router.replace(`${pathname}${search}`, {
         scroll: false,
       });
