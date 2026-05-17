@@ -21,6 +21,7 @@ export async function getProducts(filters: ProductFilters = {}) {
       order: filters.order || undefined,
       orderby: filters.orderby || undefined,
       featured: filters.featured || undefined,
+      on_sale: filters.on_sale || undefined,
     });
 
     console.log(response, "response.data");

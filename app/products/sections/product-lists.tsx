@@ -58,6 +58,7 @@ export default function ProductLists() {
           | "onbackorder"
           | undefined)
       : undefined,
+    on_sale: filters.onSale || undefined,
   });
 
   const filtered = filterAndSortProducts(PRODUCTS, filters);
@@ -81,6 +82,7 @@ export default function ProductLists() {
     categoryFilterKey,
     attributeFilterKey,
     filters.availability,
+    filters.onSale,
     filters.page,
   ]);
 

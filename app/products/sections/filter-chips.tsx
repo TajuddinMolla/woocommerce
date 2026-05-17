@@ -78,6 +78,11 @@ export function FilterChips({ filters, setFilters, clearAll, total }: Props) {
       label: filters.availability === "instock" ? "In Stock" : "Out of Stock",
       onRemove: () => setFilters({ availability: undefined, page: 1 }),
     });
+  if (filters.onSale)
+    chips.push({
+      label: "On sale",
+      onRemove: () => setFilters({ onSale: false, page: 1 }),
+    });
 
   if (chips.length === 0) return null;
 

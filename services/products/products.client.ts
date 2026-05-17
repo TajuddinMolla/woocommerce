@@ -12,6 +12,7 @@ export type FilterState = {
   categories: string[];
   attributes: string[];
   availability: "instock" | "outofstock" | "onbackorder" | undefined;
+  onSale: boolean;
   view: string;
 };
 

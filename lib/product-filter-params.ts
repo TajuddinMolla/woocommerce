@@ -12,6 +12,7 @@ export const DEFAULT_PRODUCT_FILTERS: FilterState = {
   attributes: [],
   view: "grid",
   availability: undefined,
+  onSale: false,
 };
 
 const STOCK_STATUSES = ["instock", "outofstock", "onbackorder"] as const;
@@ -38,6 +39,10 @@ function parseStockStatus(
   return STOCK_STATUSES.includes(value as (typeof STOCK_STATUSES)[number])
     ? (value as FilterState["availability"])
     : undefined;
+}
+
+function parseBool(value: string | null) {
+  return value === "true" || value === "1";
 }
 
 function parseView(value: string | null) {
@@ -72,6 +77,7 @@ export function parseProductFilters(
     availability: parseStockStatus(
       searchParams.get("stock") ?? searchParams.get("availability"),
     ),
+    onSale: parseBool(searchParams.get("on_sale")),
   };
 }
 
@@ -106,6 +112,8 @@ export function serializeProductFilters(filters: FilterState): string {
   }
 
   if (filters.availability) params.set("stock", filters.availability);
+
+  if (filters.onSale) params.set("on_sale", "true");
 
   if (filters.view !== DEFAULT_PRODUCT_FILTERS.view) {
     params.set("view", filters.view);
