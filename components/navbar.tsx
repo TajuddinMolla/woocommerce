@@ -59,7 +59,7 @@ function buildNavLinks(categoryGroups: NavSubGroup[]): NavItem[] {
   return [
     {
       label: "New Arrivals",
-      href: `/products?${new URLSearchParams({ sort: "newest" })}`,
+      href: `/products?${new URLSearchParams({ orderby: "newest" })}`,
     },
     {
       label: "Categories",
@@ -72,7 +72,7 @@ function buildNavLinks(categoryGroups: NavSubGroup[]): NavItem[] {
     },
     {
       label: "Sale",
-      href: "#",
+      href: `/products?${new URLSearchParams({ orderby: "popularity" })}`,
       highlight: true,
     },
   ];
