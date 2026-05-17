@@ -10,6 +10,10 @@ import { Pagination } from "./pagination";
 import { FilterChips } from "./filter-chips";
 import { ProductToolbar } from "./product-toolbar";
 import { ProductCard } from "./product-card";
+import {
+  categorySlugsToIds,
+  useCategories,
+} from "@/services/categories/categories.client";
 import { useProducts } from "@/services/products/products.client";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useProductFilters } from "@/hooks/useProductFilters";
@@ -19,6 +23,7 @@ const PAGE_SIZE = 12;
 
 export default function ProductLists() {
   const { filters, updateFilters, clearAll } = useProductFilters();
+  const { categories } = useCategories();
 
   const debouncedSearch = useDebounce(filters.search, 500);
   const debouncedMinPrice = useDebounce(filters.minPrice, 500);
@@ -43,7 +48,7 @@ export default function ProductLists() {
     page: filters.page,
     per_page: PAGE_SIZE,
     order: filters.order as "asc" | "desc",
-    category: filters.categories.join(","),
+    category: categorySlugsToIds(filters.categories, categories) || undefined,
     attribute: filters.attributes.join(","),
     stock_status: filters.availability
       ? (filters.availability as

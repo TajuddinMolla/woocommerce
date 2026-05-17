@@ -1,6 +1,7 @@
 "use client";
 import { X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { useCategories } from "@/services/categories/categories.client";
 import { FilterState } from "@/services/products/products.client";
 import { isPriceFilterActive } from "@/utils/filterProducts";
 
@@ -16,6 +17,10 @@ type Props = {
 };
 
 export function FilterChips({ filters, setFilters, clearAll, total }: Props) {
+  const { categories } = useCategories();
+  const categoryLabel = (slug: string) =>
+    categories.find((c) => c.slug === slug)?.name ?? slug;
+
   const chips: Chip[] = [];
 
   if (filters.search)
@@ -25,7 +30,7 @@ export function FilterChips({ filters, setFilters, clearAll, total }: Props) {
     });
   filters.categories.forEach((c) =>
     chips.push({
-      label: c,
+      label: categoryLabel(c),
       onRemove: () =>
         setFilters((p) => ({
           ...p,

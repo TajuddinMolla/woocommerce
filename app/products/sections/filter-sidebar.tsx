@@ -2,7 +2,8 @@
 import { useCallback } from "react";
 import { ChevronDown, ChevronUp, Search, X } from "lucide-react";
 import { useState } from "react";
-import { BRANDS, CATEGORIES, PRICE_RANGE } from "@/data/products";
+import { BRANDS, PRICE_RANGE } from "@/data/products";
+import { useCategories } from "@/services/categories/categories.client";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Slider } from "@/components/ui/slider";
 import { FilterState } from "@/services/products/products.client";
@@ -43,6 +44,8 @@ type Props = {
 };
 
 export function FilterSidebar({ filters, setFilters, clearAll }: Props) {
+  const { categories, isLoading, isError } = useCategories();
+
   const toggleMulti = useCallback(
     (key: "categories" | "attributes", value: string) => {
       setFilters((prev) => {
@@ -96,20 +99,31 @@ export function FilterSidebar({ filters, setFilters, clearAll }: Props) {
       {/* Category */}
       <Section title="Category">
         <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
-          {CATEGORIES.map((cat) => (
-            <label
-              key={cat}
-              className="flex items-center gap-2 cursor-pointer group"
-            >
-              <Checkbox
-                checked={filters.categories.includes(cat)}
-                onCheckedChange={() => toggleMulti("categories", cat)}
-              />
-              <span className="text-sm text-foreground group-hover:text-primary transition-colors">
-                {cat}
-              </span>
-            </label>
-          ))}
+          {isLoading ? (
+            <p className="text-sm text-muted-foreground">Loading categories…</p>
+          ) : isError ? (
+            <p className="text-sm text-destructive">Could not load categories</p>
+          ) : categories.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No categories found</p>
+          ) : (
+            categories.map((cat) => {
+              const value = cat.slug;
+              return (
+                <label
+                  key={cat.slug}
+                  className="flex items-center gap-2 cursor-pointer group"
+                >
+                  <Checkbox
+                    checked={filters.categories.includes(value)}
+                    onCheckedChange={() => toggleMulti("categories", value)}
+                  />
+                  <span className="text-sm text-foreground group-hover:text-primary transition-colors">
+                    {cat.name}
+                  </span>
+                </label>
+              );
+            })
+          )}
         </div>
       </Section>
 
