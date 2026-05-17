@@ -107,6 +107,7 @@ export function useProducts(
 
     isLoading: query.isLoading,
     isFetching: query.isFetching,
+    isPlaceholderData: query.isPlaceholderData,
     isError: query.isError,
     error: query.error,
 
