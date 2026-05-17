@@ -1,7 +1,6 @@
 "use client";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { Product, PRODUCTS } from "@/data/products";
-import { useQueryParams } from "@/hooks/useQueryParams";
 import { filterAndSortProducts } from "@/utils/filterProducts";
 import { EmptyState } from "./empty-state";
 import { FilterSidebar } from "./filter-sidebar";
@@ -9,25 +8,76 @@ import { Pagination } from "./pagination";
 import { FilterChips } from "./filter-chips";
 import { ProductToolbar } from "./product-toolbar";
 import { ProductCard } from "./product-card";
+import {
+  ProductFilters,
+  useProducts,
+} from "@/services/products/products.client";
+import { useDebounce } from "@/hooks/useDebounce";
+import { ProductCardSkeleton } from "./product-card-skeleton";
 
 const PAGE_SIZE = 12;
 
 export default function ProductLists() {
-  const { filters, setFilters, clearAll } = useQueryParams();
-  const [_quickViewProduct, setQuickViewProduct] = useState<Product | null>(
-    null,
-  );
+  const [filters, setFilters] = useState({
+    search: "",
+    minPrice: 0,
+    maxPrice: 0,
+    orderby: "",
+    page: 1,
+    order: "desc",
+    categories: [] as string[],
+    attributes: [] as string[],
+    view: "grid",
+    availability: "" as "instock" | "outofstock" | "onbackorder" | undefined,
+  });
+
+  const debouncedSearch = useDebounce(filters.search, 500);
+  const debouncedMinPrice = useDebounce(filters.minPrice, 500);
+  const debouncedMaxPrice = useDebounce(filters.maxPrice, 500);
+
+  const { products, pagination, isLoading } = useProducts({
+    search: debouncedSearch,
+    min_price: debouncedMinPrice.toString(),
+    max_price: debouncedMaxPrice > 0 ? debouncedMaxPrice.toString() : undefined,
+    orderby: filters.orderby,
+    page: filters.page,
+    per_page: PAGE_SIZE,
+    order: filters.order as "asc" | "desc",
+    category: filters.categories.join(","),
+    attribute: filters.attributes.join(","),
+    stock_status: filters.availability
+      ? (filters.availability as
+          | "instock"
+          | "outofstock"
+          | "onbackorder"
+          | undefined)
+      : undefined,
+  });
+
+  console.log(products, "products");
+  console.log(pagination, "pagination");
+  console.log(isLoading, "isLoading");
+
+  const clearAll = useCallback(() => {
+    setFilters({
+      search: "",
+      minPrice: 0,
+      maxPrice: 0,
+      orderby: "",
+      page: 1,
+      order: "desc",
+      categories: [] as string[],
+      attributes: [] as string[],
+      view: "grid" as "grid" | "list",
+      availability: "" as "instock" | "outofstock" | "onbackorder" | undefined,
+    });
+  }, []);
 
   const filtered = filterAndSortProducts(PRODUCTS, filters);
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const page = Math.min(filters.page, totalPages);
-  const paged = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
-
-  const activeFilterCount =
-    filters.categories.length +
-    filters.brands.length +
-    filters.colors.length +
-    (filters.rating > 0 ? 1 : 0);
+  const paged = filtered.slice(
+    (filters.page - 1) * PAGE_SIZE,
+    filters.page * PAGE_SIZE,
+  );
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -38,7 +88,7 @@ export default function ProductLists() {
             <div className="sticky top-[105px]">
               <FilterSidebar
                 filters={filters}
-                setFilters={setFilters}
+                setFilters={(u) => setFilters({ ...filters, ...u })}
                 clearAll={clearAll}
               />
             </div>
@@ -48,18 +98,33 @@ export default function ProductLists() {
           <div className="flex-1 min-w-0">
             <FilterChips
               filters={filters}
-              setFilters={setFilters}
+              setFilters={(u) => setFilters({ ...filters, ...u })}
               clearAll={clearAll}
               total={PRODUCTS.length}
             />
             <ProductToolbar
               filters={filters}
-              setFilters={setFilters}
+              setFilters={(u) => setFilters({ ...filters, ...u })}
               total={PRODUCTS.length}
               filtered={filtered.length}
             />
 
-            {paged.length === 0 ? (
+            {isLoading ? (
+              <div
+                className={
+                  filters.view === "grid"
+                    ? "grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-4"
+                    : "flex flex-col gap-3 mt-4"
+                }
+              >
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <ProductCardSkeleton
+                    key={i}
+                    view={filters.view as "grid" | "list"}
+                  />
+                ))}
+              </div>
+            ) : products.length === 0 ? (
               <EmptyState onClear={clearAll} />
             ) : (
               <>
@@ -70,19 +135,19 @@ export default function ProductLists() {
                       : "flex flex-col gap-3 mt-4"
                   }
                 >
-                  {paged.map((product) => (
+                  {products.map((product) => (
                     <ProductCard
                       key={product.id}
                       product={product}
-                      view={filters.view}
-                      onQuickView={setQuickViewProduct}
+                      view={filters.view as "grid" | "list"}
+                      onQuickView={() => {}}
                     />
                   ))}
                 </div>
                 <Pagination
-                  page={page}
-                  totalPages={totalPages}
-                  onChange={(p) => setFilters({ page: p })}
+                  page={filters.page}
+                  totalPages={pagination?.totalPages ?? 0}
+                  onChange={(p) => setFilters({ ...filters, page: p })}
                 />
               </>
             )}

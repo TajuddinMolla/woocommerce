@@ -6,8 +6,8 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-import { FilterState } from "@/hooks/useQueryParams";
 import { LayoutGrid, List } from "lucide-react";
+import { FilterState } from "@/services/products/products.client";
 
 const SORT_OPTIONS = [
   { value: "popular", label: "Most Popular" },
@@ -39,8 +39,8 @@ export function ProductToolbar({
       </p>
       <div className="flex items-center gap-2">
         <Select
-          value={filters.sort}
-          onValueChange={(v) => setFilters({ sort: v, page: 1 })}
+          value={filters.orderby}
+          onValueChange={(v) => setFilters({ orderby: v, page: 1 })}
         >
           <SelectTrigger className="h-9 w-44 text-sm">
             <SelectValue placeholder="Sort by" />

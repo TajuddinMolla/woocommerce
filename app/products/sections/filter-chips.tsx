@@ -1,8 +1,8 @@
 "use client";
 import { X } from "lucide-react";
-import { FilterState } from "@/hooks/useQueryParams";
 import { Badge } from "@/components/ui/badge";
 import { PRICE_RANGE } from "@/data/products";
+import { FilterState } from "@/services/products/products.client";
 
 type Chip = { label: string; onRemove: () => void };
 
@@ -34,13 +34,13 @@ export function FilterChips({ filters, setFilters, clearAll, total }: Props) {
         })),
     }),
   );
-  filters.brands.forEach((b) =>
+  filters.attributes.forEach((b) =>
     chips.push({
       label: b,
       onRemove: () =>
         setFilters((p) => ({
           ...p,
-          brands: p.brands.filter((x) => x !== b),
+          attributes: p.attributes.filter((x) => x !== b),
           page: 1,
         })),
     }),
@@ -52,26 +52,26 @@ export function FilterChips({ filters, setFilters, clearAll, total }: Props) {
         setFilters({ minPrice: 0, maxPrice: PRICE_RANGE.max, page: 1 }),
     });
   }
-  if (filters.rating > 0)
-    chips.push({
-      label: `${filters.rating}★ & up`,
-      onRemove: () => setFilters({ rating: 0, page: 1 }),
-    });
-  filters.colors.forEach((c) =>
-    chips.push({
-      label: c,
-      onRemove: () =>
-        setFilters((p) => ({
-          ...p,
-          colors: p.colors.filter((x) => x !== c),
-          page: 1,
-        })),
-    }),
-  );
+  // if (filters.rating > 0)
+  //   chips.push({
+  //     label: `${filters.rating}★ & up`,
+  //     onRemove: () => setFilters({ rating: 0, page: 1 }),
+  //   });
+  // filters.colors.forEach((c) =>
+  //   chips.push({
+  //     label: c,
+  //     onRemove: () =>
+  //       setFilters((p) => ({
+  //         ...p,
+  //         colors: p.colors.filter((x) => x !== c),
+  //         page: 1,
+  //       })),
+  //   }),
+  // );
   if (filters.availability)
     chips.push({
-      label: filters.availability === "in-stock" ? "In Stock" : "Out of Stock",
-      onRemove: () => setFilters({ availability: "", page: 1 }),
+      label: filters.availability === "instock" ? "In Stock" : "Out of Stock",
+      onRemove: () => setFilters({ availability: undefined, page: 1 }),
     });
 
   if (chips.length === 0) return null;
