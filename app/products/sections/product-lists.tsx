@@ -1,4 +1,5 @@
 "use client";
+import { useEffect, useRef } from "react";
 import { PRODUCTS } from "@/data/products";
 import {
   filterAndSortProducts,
@@ -60,6 +61,28 @@ export default function ProductLists() {
   });
 
   const filtered = filterAndSortProducts(PRODUCTS, filters);
+
+  const categoryFilterKey = filters.categories.join(",");
+  const attributeFilterKey = filters.attributes.join(",");
+
+  const isFirstFilterRender = useRef(true);
+  useEffect(() => {
+    if (isFirstFilterRender.current) {
+      isFirstFilterRender.current = false;
+      return;
+    }
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [
+    debouncedSearch,
+    debouncedMinPrice,
+    debouncedMaxPrice,
+    filters.orderby,
+    filters.order,
+    categoryFilterKey,
+    attributeFilterKey,
+    filters.availability,
+    filters.page,
+  ]);
 
   return (
     <div className="min-h-screen bg-background text-foreground">
