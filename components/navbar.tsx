@@ -1,84 +1,99 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Search, ShoppingBag, Heart, Menu, X, ChevronDown } from "lucide-react";
 import Link from "next/link";
+
+import { useCategories } from "@/services/categories/categories.client";
+import { WooCategory } from "@/services/products/product.type";
+
+type NavSubGroup = {
+  label: string;
+  items: { label: string; href: string }[];
+};
 
 type NavItem = {
   label: string;
   href: string;
   highlight?: boolean;
-  sub?: {
-    label: string;
-    items: {
-      label: string;
-      href: string;
-    }[];
-  }[];
+  sub?: NavSubGroup[];
 };
 
-const navLinks: NavItem[] = [
-  {
-    label: "New Arrivals",
-    href: `/products?${new URLSearchParams({ sort: "newest" })}`,
-  },
-  {
-    label: "Women",
-    href: "#",
-    sub: [
-      {
-        label: "Clothing",
-        items: [
-          { label: "Tops", href: "#" },
-          { label: "Dresses", href: "#" },
-          { label: "Bottoms", href: "#" },
-          { label: "Outerwear", href: "#" },
-        ],
-      },
-      {
-        label: "Accessories",
-        items: [
-          { label: "Bags", href: "#" },
-          { label: "Jewelry", href: "#" },
-          { label: "Belts", href: "#" },
-          { label: "Scarves", href: "#" },
-        ],
-      },
-    ],
-  },
-  {
-    label: "Men",
-    href: "#",
-    sub: [
-      {
-        label: "Fashion",
-        items: [
-          { label: "Shirts", href: "#" },
-          { label: "Pants", href: "#" },
-          { label: "Jackets", href: "#" },
-        ],
-      },
-      {
-        label: "Footwear",
-        items: [
-          { label: "Sneakers", href: "#" },
-          { label: "Boots", href: "#" },
-          { label: "Sandals", href: "#" },
-        ],
-      },
-    ],
-  },
-  {
-    label: "Sale",
-    href: "#",
-    highlight: true,
-  },
-];
+function productCategoryHref(slug: string) {
+  const params = new URLSearchParams();
+  params.set("categories", slug);
+  return `/products?${params}`;
+}
+
+function isNavCategory(cat: WooCategory) {
+  return cat.slug !== "uncategorized";
+}
+
+function buildCategoriesDropdown(categories: WooCategory[]): NavSubGroup[] {
+  const filtered = categories.filter(isNavCategory);
+  const topLevel = filtered.filter((c) => (c.parent ?? 0) === 0);
+
+  if (topLevel.length === 0) return [];
+
+  return topLevel.map((parent) => {
+    const children = filtered.filter((c) => c.parent === parent.id);
+
+    const items =
+      children.length > 0
+        ? children.map((child) => ({
+            label: child.name,
+            href: productCategoryHref(child.slug),
+          }))
+        : [
+            {
+              label: parent.name,
+              href: productCategoryHref(parent.slug),
+            },
+          ];
+
+    return { label: parent.name, items };
+  });
+}
+
+function buildNavLinks(categoryGroups: NavSubGroup[]): NavItem[] {
+  return [
+    {
+      label: "New Arrivals",
+      href: `/products?${new URLSearchParams({ sort: "newest" })}`,
+    },
+    {
+      label: "Categories",
+      href: "/products",
+      sub: categoryGroups,
+    },
+    {
+      label: "All Products",
+      href: "/products",
+    },
+    {
+      label: "Sale",
+      href: "#",
+      highlight: true,
+    },
+  ];
+}
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+
+  const { categories, isLoading } = useCategories();
+
+  const categoryGroups = useMemo(
+    () => buildCategoriesDropdown(categories),
+    [categories],
+  );
+
+  const navLinks = useMemo(
+    () => buildNavLinks(categoryGroups),
+    [categoryGroups],
+  );
 
   useEffect(() => {
     const onScroll = () => {
@@ -151,27 +166,33 @@ export default function Navbar() {
                   {/* Mega Dropdown */}
                   {link.sub && activeDropdown === link.label && (
                     <div className="absolute top-full left-0 min-w-[500px] bg-white border border-stone-100 rounded-xl shadow-2xl p-6 animate-in fade-in zoom-in-95 duration-200">
-                      <div className="grid grid-cols-2 gap-10">
-                        {link.sub.map((group) => (
-                          <div key={group.label}>
-                            <h4 className="text-sm font-semibold text-stone-900 mb-4 uppercase tracking-wide">
-                              {group.label}
-                            </h4>
-
-                            <div className="space-y-3">
-                              {group.items.map((item) => (
-                                <Link
-                                  key={item.label}
-                                  href={item.href}
-                                  className="block text-sm text-stone-600 hover:text-stone-900 transition-colors"
-                                >
-                                  {item.label}
-                                </Link>
-                              ))}
+                      {isLoading ? (
+                        <p className="text-sm text-stone-500">
+                          Loading categories…
+                        </p>
+                      ) : link.sub.length === 0 ? (
+                        <p className="text-sm text-stone-500">
+                          No categories found
+                        </p>
+                      ) : (
+                        <div className="grid grid-cols-2 gap-4">
+                          {link.sub.map((group) => (
+                            <div key={group.label}>
+                              <div className="space-y-3">
+                                {group.items.map((item) => (
+                                  <Link
+                                    key={`${group.label}-${item.label}`}
+                                    href={item.href}
+                                    className="block text-sm text-stone-600 hover:text-stone-900 transition-colors"
+                                  >
+                                    {item.label}
+                                  </Link>
+                                ))}
+                              </div>
                             </div>
-                          </div>
-                        ))}
-                      </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -235,32 +256,40 @@ export default function Navbar() {
                     className={`block text-lg font-semibold ${
                       link.highlight ? "text-rose-600" : "text-stone-900"
                     }`}
+                    onClick={() => setMobileOpen(false)}
                   >
                     {link.label}
                   </Link>
 
-                  {/* Mobile Submenu */}
+                  {/* Mobile Submenu — Categories mega menu */}
                   {link.sub && (
                     <div className="mt-5 space-y-5 pl-4 border-l border-stone-200">
-                      {link.sub.map((group) => (
-                        <div key={group.label}>
-                          <h4 className="text-sm font-semibold uppercase tracking-wide text-stone-800 mb-3">
-                            {group.label}
-                          </h4>
-
-                          <div className="space-y-3">
-                            {group.items.map((item) => (
-                              <Link
-                                key={item.label}
-                                href={item.href}
-                                className="block text-sm text-stone-500 hover:text-stone-900 transition-colors"
-                              >
-                                {item.label}
-                              </Link>
-                            ))}
+                      {isLoading ? (
+                        <p className="text-sm text-stone-500">
+                          Loading categories…
+                        </p>
+                      ) : link.sub.length === 0 ? (
+                        <p className="text-sm text-stone-500">
+                          No categories found
+                        </p>
+                      ) : (
+                        link.sub.map((group) => (
+                          <div key={group.label}>
+                            <div className="space-y-3">
+                              {group.items.map((item) => (
+                                <Link
+                                  key={`${group.label}-${item.label}`}
+                                  href={item.href}
+                                  className="block text-sm text-stone-500 hover:text-stone-900 transition-colors"
+                                  onClick={() => setMobileOpen(false)}
+                                >
+                                  {item.label}
+                                </Link>
+                              ))}
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        ))
+                      )}
                     </div>
                   )}
                 </div>
