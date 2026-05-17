@@ -10,7 +10,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { FilterSidebar } from "./filter-sidebar";
+import { FilterSidebar, type FilterSidebarMetadata } from "./filter-sidebar";
 import { FilterState } from "@/services/products/products.client";
 import { isPriceFilterActive } from "@/utils/filterProducts";
 
@@ -31,9 +31,15 @@ type Props = {
     u: Partial<FilterState> | ((p: FilterState) => FilterState),
   ) => void;
   clearAll: () => void;
+  filterMetadata: FilterSidebarMetadata;
 };
 
-export function MobileFilterSheet({ filters, setFilters, clearAll }: Props) {
+export function MobileFilterSheet({
+  filters,
+  setFilters,
+  clearAll,
+  filterMetadata,
+}: Props) {
   const activeCount = countActiveFilters(filters);
 
   return (
@@ -56,6 +62,7 @@ export function MobileFilterSheet({ filters, setFilters, clearAll }: Props) {
             filters={filters}
             setFilters={setFilters}
             clearAll={clearAll}
+            {...filterMetadata}
           />
           <SheetFooter className="sticky bottom-0 -mx-6 border-t border-border bg-background px-6 py-4">
             <SheetClose asChild>

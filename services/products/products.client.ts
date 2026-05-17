@@ -1,6 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { getProduct, getProducts } from "./products.server";
-import { WooProduct } from "./product.type";
+import {
+  WooProduct,
+  WooProductStatus,
+  WooProductStockStatus,
+  WooProductTaxClass,
+  WooProductType,
+} from "./product.type";
 
 export type FilterState = {
   search: string;
@@ -11,7 +17,7 @@ export type FilterState = {
   order: string;
   categories: string[];
   attributes: string[];
-  availability: "instock" | "outofstock" | "onbackorder" | undefined;
+  availability: WooProductStockStatus | undefined;
   onSale: boolean;
   view: string;
 };
@@ -43,11 +49,11 @@ export type ProductFilters = {
   parent_exclude?: number[];
 
   slug?: string;
-  status?: "any" | "draft" | "pending" | "private" | "publish";
+  status?: WooProductStatus | undefined;
   include_status?: string;
   exclude_status?: string;
 
-  type?: "simple" | "grouped" | "external" | "variable";
+  type?: WooProductType | undefined;
   include_types?: string;
   exclude_types?: string;
 
@@ -61,20 +67,23 @@ export type ProductFilters = {
   attribute?: string;
   attribute_term?: string;
 
-  tax_class?: "standard" | "reduced-rate" | "zero-rate";
+  tax_class?: WooProductTaxClass | undefined;
 
   on_sale?: boolean;
 
   min_price?: string;
   max_price?: string;
 
-  stock_status?: "instock" | "outofstock" | "onbackorder";
+  stock_status?: WooProductStockStatus | undefined;
 
   virtual?: boolean;
   downloadable?: boolean;
 };
 
-export function useProducts(filters: ProductFilters = {}) {
+export function useProducts(
+  filters: ProductFilters = {},
+  options?: { enabled?: boolean },
+) {
   const query = useQuery({
     queryKey: ["products", filters],
 
@@ -88,6 +97,7 @@ export function useProducts(filters: ProductFilters = {}) {
       return response.data;
     },
 
+    enabled: options?.enabled !== false,
     placeholderData: (previousData) => previousData,
   });
 

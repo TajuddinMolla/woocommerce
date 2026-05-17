@@ -1,13 +1,15 @@
 "use client";
-import { useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { ChevronDown, ChevronUp, Search, X } from "lucide-react";
-import { useState } from "react";
-import { BRANDS, PRICE_RANGE } from "@/data/products";
-import { useCategories } from "@/services/categories/categories.client";
+import { PRICE_RANGE } from "@/data/products";
+import { AttributeFilterOption } from "@/services/attributes/attributes.type";
+import { WooCategory } from "@/services/categories/categories.type";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Slider } from "@/components/ui/slider";
 import { FilterState } from "@/services/products/products.client";
 import { isPriceFilterActive } from "@/utils/filterProducts";
+import { WooProductStockStatus } from "@/services/products/product.type";
+import { useDebounce } from "@/hooks/useDebounce";
 
 type SectionProps = {
   title: string;
@@ -35,7 +37,17 @@ function Section({ title, children, defaultOpen = true }: SectionProps) {
   );
 }
 
-type Props = {
+export type FilterSidebarMetadata = {
+  categories: WooCategory[];
+  categoriesLoading: boolean;
+  categoriesError: boolean;
+  attributeOptions: AttributeFilterOption[];
+  filterAttributes: { slug: string; name: string }[];
+  attributesLoading: boolean;
+  attributesError: boolean;
+};
+
+type Props = FilterSidebarMetadata & {
   filters: FilterState;
   setFilters: (
     u: Partial<FilterState> | ((p: FilterState) => FilterState),
@@ -43,8 +55,51 @@ type Props = {
   clearAll: () => void;
 };
 
-export function FilterSidebar({ filters, setFilters, clearAll }: Props) {
-  const { categories, isLoading, isError } = useCategories();
+export function FilterSidebar({
+  filters,
+  setFilters,
+  clearAll,
+  categories,
+  categoriesLoading,
+  categoriesError,
+  attributeOptions,
+  filterAttributes,
+  attributesLoading,
+  attributesError,
+}: Props) {
+  const [searchInput, setSearchInput] = useState(filters.search);
+  const [prevFiltersSearch, setPrevFiltersSearch] = useState(filters.search);
+  if (filters.search !== prevFiltersSearch) {
+    setPrevFiltersSearch(filters.search);
+    setSearchInput(filters.search);
+  }
+
+  const debouncedSearchInput = useDebounce(searchInput, 500);
+
+  const [priceRange, setPriceRange] = useState<[number, number]>([
+    filters.minPrice,
+    filters.maxPrice,
+  ]);
+  const [prevCommittedPrice, setPrevCommittedPrice] = useState({
+    min: filters.minPrice,
+    max: filters.maxPrice,
+  });
+  if (
+    filters.minPrice !== prevCommittedPrice.min ||
+    filters.maxPrice !== prevCommittedPrice.max
+  ) {
+    setPrevCommittedPrice({
+      min: filters.minPrice,
+      max: filters.maxPrice,
+    });
+    setPriceRange([filters.minPrice, filters.maxPrice]);
+  }
+
+  useEffect(() => {
+    if (debouncedSearchInput !== filters.search) {
+      setFilters({ search: debouncedSearchInput, page: 1 });
+    }
+  }, [debouncedSearchInput, filters.search, setFilters]);
 
   const toggleMulti = useCallback(
     (key: "categories" | "attributes", value: string) => {
@@ -82,27 +137,27 @@ export function FilterSidebar({ filters, setFilters, clearAll }: Props) {
         )}
       </div>
 
-      {/* Search */}
       <Section title="Search">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
           <input
             type="text"
             placeholder="Search products..."
-            value={filters.search}
-            onChange={(e) => setFilters({ search: e.target.value, page: 1 })}
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
             className="w-full rounded-md border border-input bg-background pl-8 pr-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
           />
         </div>
       </Section>
 
-      {/* Category */}
       <Section title="Category">
         <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
-          {isLoading ? (
+          {categoriesLoading ? (
             <p className="text-sm text-muted-foreground">Loading categories…</p>
-          ) : isError ? (
-            <p className="text-sm text-destructive">Could not load categories</p>
+          ) : categoriesError ? (
+            <p className="text-sm text-destructive">
+              Could not load categories
+            </p>
           ) : categories.length === 0 ? (
             <p className="text-sm text-muted-foreground">No categories found</p>
           ) : (
@@ -127,116 +182,87 @@ export function FilterSidebar({ filters, setFilters, clearAll }: Props) {
         </div>
       </Section>
 
-      {/* Brand */}
-      {/* <Section title="Brand" defaultOpen={false}>
-        <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
-          {BRANDS.map((brand) => (
-            <label
-              key={brand}
-              className="flex items-center gap-2 cursor-pointer group"
-            >
-              <Checkbox
-                checked={filters.attributes.includes(brand)}
-                onCheckedChange={() => toggleMulti("attributes", brand)}
-              />
-              <span className="text-sm text-foreground group-hover:text-primary transition-colors">
-                {brand}
-              </span>
-            </label>
-          ))}
-        </div>
-      </Section> */}
+      {attributesLoading && attributeOptions.length === 0 ? (
+        <Section title="Attributes" defaultOpen={false}>
+          <p className="text-sm text-muted-foreground">Loading attributes…</p>
+        </Section>
+      ) : attributesError ? (
+        <Section title="Attributes" defaultOpen={false}>
+          <p className="text-sm text-destructive">Could not load attributes</p>
+        </Section>
+      ) : (
+        filterAttributes.map((attr) => {
+          const terms = attributeOptions.filter(
+            (o) => o.attributeSlug === attr.slug,
+          );
+          if (terms.length === 0) return null;
 
-      {/* Price Range */}
+          return (
+            <Section key={attr.slug} title={attr.name} defaultOpen={false}>
+              <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                {terms.map((term) => (
+                  <label
+                    key={term.key}
+                    className="flex items-center gap-2 cursor-pointer group"
+                  >
+                    <Checkbox
+                      checked={filters.attributes.includes(term.key)}
+                      onCheckedChange={() =>
+                        toggleMulti("attributes", term.key)
+                      }
+                    />
+                    <span className="text-sm text-foreground group-hover:text-primary transition-colors">
+                      {term.termName}
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </Section>
+          );
+        })
+      )}
+
       <Section title="Price Range">
         <div className="px-1 pt-2">
           <Slider
             min={PRICE_RANGE.min}
             max={PRICE_RANGE.max}
             step={10}
-            value={[filters.minPrice, filters.maxPrice]}
-            onValueChange={([min, max]) =>
+            value={priceRange}
+            onValueChange={(value) =>
+              setPriceRange([value[0], value[1]])
+            }
+            onValueCommit={([min, max]) =>
               setFilters({ minPrice: min, maxPrice: max, page: 1 })
             }
             className="mb-3 h-1 bg-primary rounded-full"
           />
           <div className="flex items-center justify-between text-xs text-muted-foreground">
             <span className="font-medium text-foreground">
-              ${filters.minPrice}
+              ${priceRange[0]}
             </span>
             <span className="font-medium text-foreground">
-              ${filters.maxPrice}
+              ${priceRange[1]}
             </span>
           </div>
         </div>
       </Section>
 
-      {/* Rating */}
-      {/* <Section title="Minimum Rating">
-        <div className="space-y-1.5">
-          {[4, 3, 2, 1].map((star) => (
-            <button
-              key={star}
-              onClick={() =>
-                setFilters({
-                  rating: filters.rating === star ? 0 : star,
-                  page: 1,
-                })
-              }
-              className={`flex items-center gap-2 w-full rounded px-2 py-1 text-sm transition-colors ${
-                filters.rating === star
-                  ? "bg-primary/10 text-primary"
-                  : "hover:bg-muted"
-              }`}
-            >
-              <span className="flex">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <svg
-                    key={i}
-                    className={`h-4 w-4 ${i < star ? "text-amber-400" : "text-muted-foreground/30"}`}
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                  </svg>
-                ))}
-              </span>
-              <span className="text-muted-foreground">& up</span>
-            </button>
-          ))}
-        </div>
-      </Section> */}
-
-      {/* Color */}
-      {/* <Section title="Color" defaultOpen={false}>
-        <div className="flex flex-wrap gap-2 pt-1">
-          {COLORS.map((color) => (
-            <button
-              key={color}
-              title={color}
-              onClick={() => toggleMulti("colors", color)}
-              className={`h-7 w-7 rounded-full border-2 transition-transform hover:scale-110 ${
-                filters.colors.includes(color)
-                  ? "border-primary shadow-md scale-110"
-                  : "border-transparent shadow-sm"
-              }`}
-              style={{ backgroundColor: COLOR_MAP[color] ?? "#ccc" }}
-            />
-          ))}
-        </div>
-        {filters.colors.length > 0 && (
-          <p className="text-xs text-muted-foreground mt-2">
-            {filters.colors.join(", ")}
-          </p>
-        )}
-      </Section> */}
-
-      {/* Availability */}
       <Section title="Availability" defaultOpen={false}>
         <div className="space-y-2">
-          {(["", "instock", "outofstock"] as const).map((v) => {
+          {(
+            [
+              "",
+              WooProductStockStatus.INSTOCK,
+              WooProductStockStatus.OUTOFSTOCK,
+            ] as const
+          ).map((v) => {
             const label =
-              v === "" ? "All" : v === "instock" ? "In Stock" : "Out of Stock";
+              v === ""
+                ? "All"
+                : v === WooProductStockStatus.INSTOCK
+                  ? "In Stock"
+                  : "Out of Stock";
             return (
               <label
                 key={v ?? "all"}

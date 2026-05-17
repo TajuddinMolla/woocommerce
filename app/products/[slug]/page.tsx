@@ -26,7 +26,7 @@ import {
   useProduct,
   useProducts,
 } from "@/services/products/products.client";
-import { WooImage, WooProduct } from "@/services/products/product.type";
+import { WooProductImage, WooProduct } from "@/services/products/product.type";
 import { ProductCard } from "../sections/product-card";
 
 const PLACEHOLDER_IMAGE =
@@ -134,7 +134,7 @@ function ProductDetailContent({
   const [wishlisted, setWishlisted] = useState(false);
 
   const image = getProductImage(product);
-  const fallbackImage: WooImage = {
+  const fallbackImage: WooProductImage = {
     id: 0,
     src: PLACEHOLDER_IMAGE,
     name: product.name,

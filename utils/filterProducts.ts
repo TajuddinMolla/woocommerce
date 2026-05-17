@@ -1,4 +1,5 @@
 import { Product } from "@/data/products";
+import { WooProductStockStatus } from "@/services/products/product.type";
 import { FilterState } from "@/services/products/products.client";
 
 export function isPriceFilterActive(minPrice: number, maxPrice: number) {
@@ -38,10 +39,9 @@ export function filterAndSortProducts(
     });
   }
 
-
-  if (filters.availability === "instock") {
+  if (filters.availability === WooProductStockStatus.INSTOCK) {
     result = result.filter((p) => p.availability === "in-stock");
-  } else if (filters.availability === "outofstock") {
+  } else if (filters.availability === WooProductStockStatus.OUTOFSTOCK) {
     result = result.filter((p) => p.availability === "out-of-stock");
   }
 

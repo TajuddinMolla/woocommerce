@@ -8,7 +8,10 @@ import Image from "next/image";
 import { StarRating } from "./star-rating";
 import { COLOR_MAP } from "@/utils/colorMap";
 import { useState } from "react";
-import { WooProduct } from "@/services/products/product.type";
+import {
+  WooProduct,
+  WooProductStockStatus,
+} from "@/services/products/product.type";
 import Link from "next/link";
 const placeholder =
   "https://images.pexels.com/photos/1040945/pexels-photo-1040945.jpeg?auto=compress&cs=tinysrgb&w=600";
@@ -51,7 +54,7 @@ export function ProductCard({ product, view }: Props) {
             width={144}
             height={144}
           />
-          {product.stock_status === "outofstock" && (
+          {product.stock_status === WooProductStockStatus.OUTOFSTOCK && (
             <div className="absolute inset-0 bg-background/60 flex items-center justify-center">
               <span className="text-xs font-semibold text-muted-foreground">
                 Out of Stock

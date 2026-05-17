@@ -9,6 +9,7 @@ import {
 import { LayoutGrid, List } from "lucide-react";
 import { FilterState } from "@/services/products/products.client";
 import { MobileFilterSheet } from "./mobile-filter-sheet";
+import type { FilterSidebarMetadata } from "./filter-sidebar";
 
 const SORT_OPTIONS = [
   { value: "popular", label: "Most Popular" },
@@ -24,16 +25,16 @@ type Props = {
     u: Partial<FilterState> | ((p: FilterState) => FilterState),
   ) => void;
   clearAll: () => void;
-  total: number;
-  filtered: number;
+  resultCount: number;
+  filterMetadata: FilterSidebarMetadata;
 };
 
 export function ProductToolbar({
   filters,
   setFilters,
   clearAll,
-  total,
-  filtered,
+  resultCount,
+  filterMetadata,
 }: Props) {
   return (
     <div className="flex items-center justify-between gap-3 pb-3 border-b border-stone-300">
@@ -42,11 +43,11 @@ export function ProductToolbar({
           filters={filters}
           setFilters={setFilters}
           clearAll={clearAll}
+          filterMetadata={filterMetadata}
         />
         <p className="text-sm text-muted-foreground truncate">
-          <span className="font-semibold text-foreground">{filtered}</span>
-          {filtered !== total && <span> of {total}</span>} product
-          {filtered !== 1 ? "s" : ""}
+          <span className="font-semibold text-foreground">{resultCount}</span>{" "}
+          product{resultCount !== 1 ? "s" : ""}
         </p>
       </div>
       <div className="flex shrink-0 items-center gap-2">
