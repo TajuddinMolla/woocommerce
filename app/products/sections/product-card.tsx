@@ -9,6 +9,7 @@ import { StarRating } from "./star-rating";
 import { COLOR_MAP } from "@/utils/colorMap";
 import { useState } from "react";
 import { WooProduct } from "@/services/products/product.type";
+import Link from "next/link";
 const placeholder =
   "https://images.pexels.com/photos/1040945/pexels-photo-1040945.jpeg?auto=compress&cs=tinysrgb&w=600";
 type Props = {
@@ -65,9 +66,11 @@ export function ProductCard({ product, view }: Props) {
                 <p className="text-xs text-muted-foreground mb-0.5">
                   {product.categories.find((c) => c.name === "Category")?.name}
                 </p>
-                <h3 className="font-semibold text-foreground line-clamp-1 group-hover:text-primary transition-colors">
-                  {product.name}
-                </h3>
+                <Link href={`/products/${product.slug}`}>
+                  <h3 className="font-semibold text-foreground line-clamp-1 group-hover:text-primary transition-colors">
+                    {product.name}
+                  </h3>
+                </Link>
               </div>
               <div className="flex gap-1 shrink-0">
                 {discount > 0 && (
@@ -175,9 +178,11 @@ export function ProductCard({ product, view }: Props) {
 
       {/* Info */}
       <div className="p-4">
-        <h3 className="text-sm font-semibold text-stone-800 truncate">
-          {product.name}
-        </h3>
+        <Link href={`/products/${product.slug}`}>
+          <h3 className="text-sm font-semibold text-stone-800 truncate">
+            {product.name}
+          </h3>
+        </Link>
         <div className="flex items-center gap-1 mt-1">
           <Star size={11} className="fill-amber-400 text-amber-400" />
           <span className="text-xs text-stone-500">
