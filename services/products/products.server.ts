@@ -20,6 +20,7 @@ export async function getProducts(filters: ProductFilters = {}) {
       stock_status: filters.stock_status || undefined,
       order: filters.order || undefined,
       orderby: filters.orderby || undefined,
+      featured: filters.featured || undefined,
     });
 
     console.log(response, "response.data");
