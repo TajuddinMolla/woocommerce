@@ -8,24 +8,27 @@ import Image from "next/image";
 import { StarRating } from "./star-rating";
 import { COLOR_MAP } from "@/utils/colorMap";
 import { useState } from "react";
-
+import { WooProduct } from "@/services/products/product.type";
+import Link from "next/link";
+const placeholder =
+  "https://images.pexels.com/photos/1040945/pexels-photo-1040945.jpeg?auto=compress&cs=tinysrgb&w=600";
 type Props = {
-  product: Product;
+  product: WooProduct;
   view: "grid" | "list";
   onQuickView: (p: Product) => void;
 };
 
 const badgeStyles: Record<string, string> = {
-  "New In": "bg-emerald-100 text-emerald-700",
-  Bestseller: "bg-amber-100 text-amber-700",
-  Sale: "bg-rose-100 text-rose-600",
+  Featured: "bg-emerald-100 text-emerald-700",
 };
 
-export function ProductCard({ product, view, onQuickView }: Props) {
+export function ProductCard({ product, view }: Props) {
   const router = useRouter();
-  const discount = product.originalPrice
+  const discount = product.regular_price
     ? Math.round(
-        ((product.originalPrice - product.price) / product.originalPrice) * 100,
+        ((Number(product.regular_price) - Number(product.sale_price)) /
+          Number(product.regular_price)) *
+          100,
       )
     : 0;
 
@@ -42,13 +45,13 @@ export function ProductCard({ product, view, onQuickView }: Props) {
       <div className="flex gap-4 rounded-xl border border-stone-300 bg-card p-4 hover:shadow-md transition-shadow group">
         <div className="relative w-36 h-36 shrink-0 rounded-lg bg-muted overflow-hidden">
           <Image
-            src={product.image}
+            src={product?.images[0]?.src || placeholder}
             alt={product.name}
             className="w-full h-full object-cover"
             width={144}
             height={144}
           />
-          {product.availability === "out-of-stock" && (
+          {product.stock_status === "outofstock" && (
             <div className="absolute inset-0 bg-background/60 flex items-center justify-center">
               <span className="text-xs font-semibold text-muted-foreground">
                 Out of Stock
@@ -61,18 +64,15 @@ export function ProductCard({ product, view, onQuickView }: Props) {
             <div className="flex items-start justify-between gap-2 mb-1">
               <div>
                 <p className="text-xs text-muted-foreground mb-0.5">
-                  {product.brand} · {product.category}
+                  {product.categories.find((c) => c.name === "Category")?.name}
                 </p>
-                <h3 className="font-semibold text-foreground line-clamp-1 group-hover:text-primary transition-colors">
-                  {product.name}
-                </h3>
+                <Link href={`/products/${product.slug}`}>
+                  <h3 className="font-semibold text-foreground line-clamp-1 group-hover:text-primary transition-colors">
+                    {product.name}
+                  </h3>
+                </Link>
               </div>
               <div className="flex gap-1 shrink-0">
-                {product.isNew && (
-                  <Badge className="text-xs bg-blue-500 hover:bg-blue-600 text-white">
-                    New
-                  </Badge>
-                )}
                 {discount > 0 && (
                   <Badge variant="destructive" className="text-xs">
                     -{discount}%
@@ -81,8 +81,8 @@ export function ProductCard({ product, view, onQuickView }: Props) {
               </div>
             </div>
             <StarRating
-              rating={product.rating}
-              reviewCount={product.reviewCount}
+              rating={product.rating_count}
+              reviewCount={product.rating_count}
             />
             <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
               {product.description}
@@ -91,25 +91,25 @@ export function ProductCard({ product, view, onQuickView }: Props) {
           <div className="flex items-center justify-between mt-3">
             <div className="flex items-baseline gap-2">
               <span className="text-lg font-bold text-foreground">
-                ${product.price}
+                ${product.price || 0}
               </span>
-              {product.originalPrice && (
+              {product.regular_price && (
                 <span className="text-sm text-muted-foreground line-through">
-                  ${product.originalPrice}
+                  ${product.regular_price || 0}
                 </span>
               )}
             </div>
             <div className="flex items-center gap-2">
-              <div className="flex gap-1">
-                {product.colors.slice(0, 4).map((c) => (
+              {/* <div className="flex gap-1">
+                {product.attributes.slice(0, 4).map((a) => (
                   <span
-                    key={c}
-                    title={c}
+                    key={a.id}
+                    title={a.name}
                     className="h-4 w-4 rounded-full border border-stone-300 shadow-sm"
-                    style={{ backgroundColor: COLOR_MAP[c] ?? "#ccc" }}
+                    style={{ backgroundColor: COLOR_MAP[a.name] ?? "#ccc" }}
                   />
                 ))}
-              </div>
+              </div> */}
               <Button
                 variant="outline"
                 size="sm"
@@ -133,7 +133,7 @@ export function ProductCard({ product, view, onQuickView }: Props) {
       {/* Image */}
       <div className="relative overflow-hidden aspect-3/4">
         <Image
-          src={product.image}
+          src={product?.images[0]?.src || placeholder}
           alt={product.name}
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
           width={1000}
@@ -141,16 +141,16 @@ export function ProductCard({ product, view, onQuickView }: Props) {
         />
 
         {/* Badge */}
-        {product.badge && (
+        {product.featured && (
           <span
-            className={`absolute top-3 left-3 text-xs font-semibold px-2.5 py-1 rounded-full ${badgeStyles[product.badge]}`}
+            className={`absolute top-3 left-3 text-xs font-semibold px-2.5 py-1 rounded-full ${badgeStyles["Featured"]}`}
           >
-            {product.badge}
+            Featured
           </span>
         )}
 
         {/* Wishlist */}
-        <button
+        {/* <button
           onClick={() => toggleWishlist(product.id)}
           className="absolute top-3 right-3 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-md hover:scale-110 transition-transform duration-200"
         >
@@ -162,7 +162,7 @@ export function ProductCard({ product, view, onQuickView }: Props) {
                 : "text-stone-400"
             }
           />
-        </button>
+        </button> */}
 
         {/* Add to cart overlay */}
         <div className="absolute bottom-0 left-0 right-0 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
@@ -178,22 +178,24 @@ export function ProductCard({ product, view, onQuickView }: Props) {
 
       {/* Info */}
       <div className="p-4">
-        <h3 className="text-sm font-semibold text-stone-800 truncate">
-          {product.name}
-        </h3>
+        <Link href={`/products/${product.slug}`}>
+          <h3 className="text-sm font-semibold text-stone-800 truncate">
+            {product.name}
+          </h3>
+        </Link>
         <div className="flex items-center gap-1 mt-1">
           <Star size={11} className="fill-amber-400 text-amber-400" />
           <span className="text-xs text-stone-500">
-            {product.rating} ({product.reviewCount})
+            {product.rating_count} ({product.rating_count})
           </span>
         </div>
         <div className="flex items-center gap-2 mt-2">
           <span className="text-base font-bold text-stone-900">
-            ${product.price}
+            ${product.price || 0}
           </span>
-          {product.originalPrice && (
+          {product.regular_price && (
             <span className="text-sm text-stone-400 line-through">
-              ${product.originalPrice}
+              ${product.regular_price || 0}
             </span>
           )}
         </div>

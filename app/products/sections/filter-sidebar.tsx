@@ -2,11 +2,12 @@
 import { useCallback } from "react";
 import { ChevronDown, ChevronUp, Search, X } from "lucide-react";
 import { useState } from "react";
-import { FilterState } from "@/hooks/useQueryParams";
-import { BRANDS, CATEGORIES, COLORS, PRICE_RANGE } from "@/data/products";
+import { BRANDS, PRICE_RANGE } from "@/data/products";
+import { useCategories } from "@/services/categories/categories.client";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Slider } from "@/components/ui/slider";
-import { COLOR_MAP } from "@/utils/colorMap";
+import { FilterState } from "@/services/products/products.client";
+import { isPriceFilterActive } from "@/utils/filterProducts";
 
 type SectionProps = {
   title: string;
@@ -43,8 +44,10 @@ type Props = {
 };
 
 export function FilterSidebar({ filters, setFilters, clearAll }: Props) {
+  const { categories, isLoading, isError } = useCategories();
+
   const toggleMulti = useCallback(
-    (key: "categories" | "brands" | "colors", value: string) => {
+    (key: "categories" | "attributes", value: string) => {
       setFilters((prev) => {
         const arr = prev[key] as string[];
         return {
@@ -62,16 +65,12 @@ export function FilterSidebar({ filters, setFilters, clearAll }: Props) {
   const hasFilters =
     filters.search ||
     filters.categories.length ||
-    filters.brands.length ||
-    filters.colors.length ||
-    filters.availability ||
-    filters.rating > 0 ||
-    filters.minPrice !== 0 ||
-    filters.maxPrice !== PRICE_RANGE.max;
+    filters.attributes.length ||
+    isPriceFilterActive(filters.minPrice, filters.maxPrice);
 
   return (
     <aside className="w-full space-y-1">
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mt-4 lg:mt-0 mb-4 ">
         <h2 className="text-base font-bold text-foreground">Filters</h2>
         {hasFilters && (
           <button
@@ -100,25 +99,36 @@ export function FilterSidebar({ filters, setFilters, clearAll }: Props) {
       {/* Category */}
       <Section title="Category">
         <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
-          {CATEGORIES.map((cat) => (
-            <label
-              key={cat}
-              className="flex items-center gap-2 cursor-pointer group"
-            >
-              <Checkbox
-                checked={filters.categories.includes(cat)}
-                onCheckedChange={() => toggleMulti("categories", cat)}
-              />
-              <span className="text-sm text-foreground group-hover:text-primary transition-colors">
-                {cat}
-              </span>
-            </label>
-          ))}
+          {isLoading ? (
+            <p className="text-sm text-muted-foreground">Loading categories…</p>
+          ) : isError ? (
+            <p className="text-sm text-destructive">Could not load categories</p>
+          ) : categories.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No categories found</p>
+          ) : (
+            categories.map((cat) => {
+              const value = cat.slug;
+              return (
+                <label
+                  key={cat.slug}
+                  className="flex items-center gap-2 cursor-pointer group"
+                >
+                  <Checkbox
+                    checked={filters.categories.includes(value)}
+                    onCheckedChange={() => toggleMulti("categories", value)}
+                  />
+                  <span className="text-sm text-foreground group-hover:text-primary transition-colors">
+                    {cat.name}
+                  </span>
+                </label>
+              );
+            })
+          )}
         </div>
       </Section>
 
       {/* Brand */}
-      <Section title="Brand" defaultOpen={false}>
+      {/* <Section title="Brand" defaultOpen={false}>
         <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
           {BRANDS.map((brand) => (
             <label
@@ -126,8 +136,8 @@ export function FilterSidebar({ filters, setFilters, clearAll }: Props) {
               className="flex items-center gap-2 cursor-pointer group"
             >
               <Checkbox
-                checked={filters.brands.includes(brand)}
-                onCheckedChange={() => toggleMulti("brands", brand)}
+                checked={filters.attributes.includes(brand)}
+                onCheckedChange={() => toggleMulti("attributes", brand)}
               />
               <span className="text-sm text-foreground group-hover:text-primary transition-colors">
                 {brand}
@@ -135,7 +145,7 @@ export function FilterSidebar({ filters, setFilters, clearAll }: Props) {
             </label>
           ))}
         </div>
-      </Section>
+      </Section> */}
 
       {/* Price Range */}
       <Section title="Price Range">
@@ -162,7 +172,7 @@ export function FilterSidebar({ filters, setFilters, clearAll }: Props) {
       </Section>
 
       {/* Rating */}
-      <Section title="Minimum Rating">
+      {/* <Section title="Minimum Rating">
         <div className="space-y-1.5">
           {[4, 3, 2, 1].map((star) => (
             <button
@@ -195,10 +205,10 @@ export function FilterSidebar({ filters, setFilters, clearAll }: Props) {
             </button>
           ))}
         </div>
-      </Section>
+      </Section> */}
 
       {/* Color */}
-      <Section title="Color" defaultOpen={false}>
+      {/* <Section title="Color" defaultOpen={false}>
         <div className="flex flex-wrap gap-2 pt-1">
           {COLORS.map((color) => (
             <button
@@ -219,14 +229,14 @@ export function FilterSidebar({ filters, setFilters, clearAll }: Props) {
             {filters.colors.join(", ")}
           </p>
         )}
-      </Section>
+      </Section> */}
 
       {/* Availability */}
       <Section title="Availability" defaultOpen={false}>
         <div className="space-y-2">
-          {(["", "in-stock", "out-of-stock"] as const).map((v) => {
+          {(["", "instock", "outofstock"] as const).map((v) => {
             const label =
-              v === "" ? "All" : v === "in-stock" ? "In Stock" : "Out of Stock";
+              v === "" ? "All" : v === "instock" ? "In Stock" : "Out of Stock";
             return (
               <label
                 key={v ?? "all"}
@@ -235,8 +245,13 @@ export function FilterSidebar({ filters, setFilters, clearAll }: Props) {
                 <input
                   type="radio"
                   name="availability"
-                  checked={filters.availability === v}
-                  onChange={() => setFilters({ availability: v, page: 1 })}
+                  checked={(filters.availability ?? "") === v}
+                  onChange={() =>
+                    setFilters({
+                      availability: v || undefined,
+                      page: 1,
+                    })
+                  }
                   className="accent-primary"
                 />
                 <span className="text-sm text-foreground group-hover:text-primary transition-colors">

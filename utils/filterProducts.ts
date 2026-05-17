@@ -1,5 +1,9 @@
 import { Product } from "@/data/products";
-import { FilterState } from "@/hooks/useQueryParams";
+import { FilterState } from "@/services/products/products.client";
+
+export function isPriceFilterActive(minPrice: number, maxPrice: number) {
+  return minPrice !== 0 || maxPrice !== 0;
+}
 
 export function filterAndSortProducts(
   products: Product[],
@@ -22,31 +26,26 @@ export function filterAndSortProducts(
     result = result.filter((p) => filters.categories.includes(p.category));
   }
 
-  if (filters.brands.length > 0) {
-    result = result.filter((p) => filters.brands.includes(p.brand));
+  if (filters.attributes.length > 0) {
+    result = result.filter((p) => filters.attributes.includes(p.brand));
   }
 
-  result = result.filter(
-    (p) => p.price >= filters.minPrice && p.price <= filters.maxPrice,
-  );
-
-  if (filters.rating > 0) {
-    result = result.filter((p) => p.rating >= filters.rating);
+  if (isPriceFilterActive(filters.minPrice, filters.maxPrice)) {
+    result = result.filter((p) => {
+      if (filters.minPrice !== 0 && p.price < filters.minPrice) return false;
+      if (filters.maxPrice !== 0 && p.price > filters.maxPrice) return false;
+      return true;
+    });
   }
 
-  if (filters.colors.length > 0) {
-    result = result.filter((p) =>
-      p.colors.some((c) => filters.colors.includes(c)),
-    );
-  }
 
-  if (filters.availability === "in-stock") {
+  if (filters.availability === "instock") {
     result = result.filter((p) => p.availability === "in-stock");
-  } else if (filters.availability === "out-of-stock") {
+  } else if (filters.availability === "outofstock") {
     result = result.filter((p) => p.availability === "out-of-stock");
   }
 
-  switch (filters.sort) {
+  switch (filters.orderby) {
     case "price_asc":
       result.sort((a, b) => a.price - b.price);
       break;

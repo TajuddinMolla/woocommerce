@@ -1,8 +1,9 @@
 "use client";
 import { X } from "lucide-react";
-import { FilterState } from "@/hooks/useQueryParams";
 import { Badge } from "@/components/ui/badge";
-import { PRICE_RANGE } from "@/data/products";
+import { useCategories } from "@/services/categories/categories.client";
+import { FilterState } from "@/services/products/products.client";
+import { isPriceFilterActive } from "@/utils/filterProducts";
 
 type Chip = { label: string; onRemove: () => void };
 
@@ -16,6 +17,10 @@ type Props = {
 };
 
 export function FilterChips({ filters, setFilters, clearAll, total }: Props) {
+  const { categories } = useCategories();
+  const categoryLabel = (slug: string) =>
+    categories.find((c) => c.slug === slug)?.name ?? slug;
+
   const chips: Chip[] = [];
 
   if (filters.search)
@@ -25,7 +30,7 @@ export function FilterChips({ filters, setFilters, clearAll, total }: Props) {
     });
   filters.categories.forEach((c) =>
     chips.push({
-      label: c,
+      label: categoryLabel(c),
       onRemove: () =>
         setFilters((p) => ({
           ...p,
@@ -34,44 +39,49 @@ export function FilterChips({ filters, setFilters, clearAll, total }: Props) {
         })),
     }),
   );
-  filters.brands.forEach((b) =>
+  filters.attributes.forEach((b) =>
     chips.push({
       label: b,
       onRemove: () =>
         setFilters((p) => ({
           ...p,
-          brands: p.brands.filter((x) => x !== b),
+          attributes: p.attributes.filter((x) => x !== b),
           page: 1,
         })),
     }),
   );
-  if (filters.minPrice !== 0 || filters.maxPrice !== PRICE_RANGE.max) {
+  if (isPriceFilterActive(filters.minPrice, filters.maxPrice)) {
+    const maxLabel = filters.maxPrice === 0 ? "∞" : `$${filters.maxPrice}`;
     chips.push({
-      label: `$${filters.minPrice}–$${filters.maxPrice}`,
-      onRemove: () =>
-        setFilters({ minPrice: 0, maxPrice: PRICE_RANGE.max, page: 1 }),
+      label: `$${filters.minPrice}–${maxLabel}`,
+      onRemove: () => setFilters({ minPrice: 0, maxPrice: 0, page: 1 }),
     });
   }
-  if (filters.rating > 0)
-    chips.push({
-      label: `${filters.rating}★ & up`,
-      onRemove: () => setFilters({ rating: 0, page: 1 }),
-    });
-  filters.colors.forEach((c) =>
-    chips.push({
-      label: c,
-      onRemove: () =>
-        setFilters((p) => ({
-          ...p,
-          colors: p.colors.filter((x) => x !== c),
-          page: 1,
-        })),
-    }),
-  );
+  // if (filters.rating > 0)
+  //   chips.push({
+  //     label: `${filters.rating}★ & up`,
+  //     onRemove: () => setFilters({ rating: 0, page: 1 }),
+  //   });
+  // filters.colors.forEach((c) =>
+  //   chips.push({
+  //     label: c,
+  //     onRemove: () =>
+  //       setFilters((p) => ({
+  //         ...p,
+  //         colors: p.colors.filter((x) => x !== c),
+  //         page: 1,
+  //       })),
+  //   }),
+  // );
   if (filters.availability)
     chips.push({
-      label: filters.availability === "in-stock" ? "In Stock" : "Out of Stock",
-      onRemove: () => setFilters({ availability: "", page: 1 }),
+      label: filters.availability === "instock" ? "In Stock" : "Out of Stock",
+      onRemove: () => setFilters({ availability: undefined, page: 1 }),
+    });
+  if (filters.onSale)
+    chips.push({
+      label: "On sale",
+      onRemove: () => setFilters({ onSale: false, page: 1 }),
     });
 
   if (chips.length === 0) return null;
