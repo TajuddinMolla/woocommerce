@@ -1,7 +1,8 @@
 "use client";
 import { X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { useCategories } from "@/services/categories/categories.client";
+import { AttributeFilterOption } from "@/services/attributes/attributes.type";
+import { WooCategory } from "@/services/categories/categories.type";
 import { FilterState } from "@/services/products/products.client";
 import { isPriceFilterActive } from "@/utils/filterProducts";
 
@@ -13,13 +14,21 @@ type Props = {
     u: Partial<FilterState> | ((p: FilterState) => FilterState),
   ) => void;
   clearAll: () => void;
-  total: number;
+  categories: WooCategory[];
+  attributeOptions: AttributeFilterOption[];
 };
 
-export function FilterChips({ filters, setFilters, clearAll, total }: Props) {
-  const { categories } = useCategories();
+export function FilterChips({
+  filters,
+  setFilters,
+  clearAll,
+  categories,
+  attributeOptions,
+}: Props) {
   const categoryLabel = (slug: string) =>
     categories.find((c) => c.slug === slug)?.name ?? slug;
+  const attributeLabel = (key: string) =>
+    attributeOptions.find((o) => o.key === key)?.termName ?? key;
 
   const chips: Chip[] = [];
 
@@ -39,13 +48,13 @@ export function FilterChips({ filters, setFilters, clearAll, total }: Props) {
         })),
     }),
   );
-  filters.attributes.forEach((b) =>
+  filters.attributes.forEach((key) =>
     chips.push({
-      label: b,
+      label: attributeLabel(key),
       onRemove: () =>
         setFilters((p) => ({
           ...p,
-          attributes: p.attributes.filter((x) => x !== b),
+          attributes: p.attributes.filter((x) => x !== key),
           page: 1,
         })),
     }),
@@ -57,22 +66,6 @@ export function FilterChips({ filters, setFilters, clearAll, total }: Props) {
       onRemove: () => setFilters({ minPrice: 0, maxPrice: 0, page: 1 }),
     });
   }
-  // if (filters.rating > 0)
-  //   chips.push({
-  //     label: `${filters.rating}★ & up`,
-  //     onRemove: () => setFilters({ rating: 0, page: 1 }),
-  //   });
-  // filters.colors.forEach((c) =>
-  //   chips.push({
-  //     label: c,
-  //     onRemove: () =>
-  //       setFilters((p) => ({
-  //         ...p,
-  //         colors: p.colors.filter((x) => x !== c),
-  //         page: 1,
-  //       })),
-  //   }),
-  // );
   if (filters.availability)
     chips.push({
       label: filters.availability === "instock" ? "In Stock" : "Out of Stock",

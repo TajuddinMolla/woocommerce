@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { WooCategory } from "@/services/products/product.type";
 import { getCategories } from "./categories.server";
+import { WooCategory } from "./categories.type";
 
 /** Map category slugs to WooCommerce API category IDs (comma-separated). */
 export function categorySlugsToIds(

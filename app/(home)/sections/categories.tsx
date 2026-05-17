@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useCategories } from "@/services/categories/categories.client";
-import { WooCategory } from "@/services/products/product.type";
+import { WooCategory } from "@/services/categories/categories.type";
 
 const CATEGORY_LIMIT = 4;
 

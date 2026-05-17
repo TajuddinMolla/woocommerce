@@ -1,67 +1,85 @@
 "use client";
-import { useEffect, useRef } from "react";
-import { PRODUCTS } from "@/data/products";
-import {
-  filterAndSortProducts,
-  isPriceFilterActive,
-} from "@/utils/filterProducts";
+import { useEffect, useMemo, useRef } from "react";
 import { EmptyState } from "./empty-state";
-import { FilterSidebar } from "./filter-sidebar";
+import { FilterSidebar, type FilterSidebarMetadata } from "./filter-sidebar";
 import { Pagination } from "./pagination";
 import { FilterChips } from "./filter-chips";
 import { ProductToolbar } from "./product-toolbar";
 import { ProductCard } from "./product-card";
-import {
-  categorySlugsToIds,
-  useCategories,
-} from "@/services/categories/categories.client";
+import { useAttributeFilterOptions } from "@/services/attributes/attributes.client";
+import { useCategories } from "@/services/categories/categories.client";
 import { useProducts } from "@/services/products/products.client";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useProductFilters } from "@/hooks/useProductFilters";
 import { ProductCardSkeleton } from "./product-card-skeleton";
+import {
+  areFilterMetadataReady,
+  buildProductQueryParams,
+} from "@/lib/product-query-params";
 
 const PAGE_SIZE = 12;
 
 export default function ProductLists() {
   const { filters, updateFilters, clearAll } = useProductFilters();
-  const { categories } = useCategories();
+  const {
+    categories,
+    isLoading: categoriesLoading,
+    isError: categoriesError,
+  } = useCategories();
+  const {
+    options: attributeOptions,
+    attributes: filterAttributes,
+    isLoading: attributesLoading,
+    isError: attributesError,
+  } = useAttributeFilterOptions();
+
+  const filterMetadata: FilterSidebarMetadata = {
+    categories,
+    categoriesLoading,
+    categoriesError,
+    attributeOptions,
+    filterAttributes,
+    attributesLoading,
+    attributesError,
+  };
 
   const debouncedSearch = useDebounce(filters.search, 500);
   const debouncedMinPrice = useDebounce(filters.minPrice, 500);
   const debouncedMaxPrice = useDebounce(filters.maxPrice, 500);
 
-  const priceFilterActive = isPriceFilterActive(
-    debouncedMinPrice,
-    debouncedMaxPrice,
+  const productQueryParams = useMemo(
+    () =>
+      buildProductQueryParams({
+        filters,
+        debouncedSearch,
+        debouncedMinPrice,
+        debouncedMaxPrice,
+        categories,
+        attributeOptions,
+        pageSize: PAGE_SIZE,
+      }),
+    [
+      filters,
+      debouncedSearch,
+      debouncedMinPrice,
+      debouncedMaxPrice,
+      categories,
+      attributeOptions,
+    ],
   );
 
-  const { products, pagination, isLoading } = useProducts({
-    search: debouncedSearch,
-    min_price:
-      priceFilterActive && debouncedMinPrice > 0
-        ? debouncedMinPrice.toString()
-        : undefined,
-    max_price:
-      priceFilterActive && debouncedMaxPrice > 0
-        ? debouncedMaxPrice.toString()
-        : undefined,
-    orderby: filters.orderby,
-    page: filters.page,
-    per_page: PAGE_SIZE,
-    order: filters.order as "asc" | "desc",
-    category: categorySlugsToIds(filters.categories, categories) || undefined,
-    attribute: filters.attributes.join(","),
-    stock_status: filters.availability
-      ? (filters.availability as
-          | "instock"
-          | "outofstock"
-          | "onbackorder"
-          | undefined)
-      : undefined,
-    on_sale: filters.onSale || undefined,
+  const filterMetaReady = areFilterMetadataReady(
+    filters,
+    categories,
+    attributeOptions,
+  );
+
+  const { products, pagination, isLoading } = useProducts(productQueryParams, {
+    enabled: filterMetaReady,
   });
 
-  const filtered = filterAndSortProducts(PRODUCTS, filters);
+  const showLoading = !filterMetaReady || isLoading;
+  const resultCount = pagination?.total ?? products.length;
 
   const categoryFilterKey = filters.categories.join(",");
   const attributeFilterKey = filters.attributes.join(",");
@@ -90,34 +108,34 @@ export default function ProductLists() {
     <div className="min-h-screen bg-background text-foreground">
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="flex gap-8">
-          {/* Desktop sidebar */}
           <aside className="hidden lg:block w-64 shrink-0">
             <div className="sticky top-[105px]">
               <FilterSidebar
                 filters={filters}
                 setFilters={updateFilters}
                 clearAll={clearAll}
+                {...filterMetadata}
               />
             </div>
           </aside>
 
-          {/* Product area */}
           <div className="flex-1 min-w-0">
             <FilterChips
               filters={filters}
               setFilters={updateFilters}
               clearAll={clearAll}
-              total={PRODUCTS.length}
+              categories={categories}
+              attributeOptions={attributeOptions}
             />
             <ProductToolbar
               filters={filters}
               setFilters={updateFilters}
               clearAll={clearAll}
-              total={PRODUCTS.length}
-              filtered={filtered.length}
+              resultCount={resultCount}
+              filterMetadata={filterMetadata}
             />
 
-            {isLoading ? (
+            {showLoading ? (
               <div
                 className={
                   filters.view === "grid"

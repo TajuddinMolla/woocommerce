@@ -21,13 +21,14 @@ export function useProductFilters() {
 
   const updateFilters = useCallback(
     (update: Partial<FilterState> | ((prev: FilterState) => FilterState)) => {
+      const current = parseProductFilters(searchParams);
       const next =
-        typeof update === "function" ? update(filters) : { ...filters, ...update };
+        typeof update === "function" ? update(current) : { ...current, ...update };
       const query = serializeProductFilters(next);
       const url = query ? `${pathname}?${query}` : pathname;
       router.replace(url, { scroll: false });
     },
-    [filters, pathname, router],
+    [pathname, router, searchParams],
   );
 
   const clearAll = useCallback(() => {

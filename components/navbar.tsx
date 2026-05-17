@@ -5,7 +5,7 @@ import { Search, ShoppingBag, Heart, Menu, X, ChevronDown } from "lucide-react";
 import Link from "next/link";
 
 import { useCategories } from "@/services/categories/categories.client";
-import { WooCategory } from "@/services/products/product.type";
+import { WooCategory } from "@/services/categories/categories.type";
 
 type NavSubGroup = {
   label: string;

@@ -1,3 +1,4 @@
+import { WooProductStockStatus } from "@/services/products/product.type";
 import { FilterState } from "@/services/products/products.client";
 import { isPriceFilterActive } from "@/utils/filterProducts";
 
@@ -15,7 +16,11 @@ export const DEFAULT_PRODUCT_FILTERS: FilterState = {
   onSale: false,
 };
 
-const STOCK_STATUSES = ["instock", "outofstock", "onbackorder"] as const;
+const STOCK_STATUSES = [
+  WooProductStockStatus.INSTOCK,
+  WooProductStockStatus.OUTOFSTOCK,
+  WooProductStockStatus.ONBACKORDER,
+] as const;
 const VIEWS = ["grid", "list"] as const;
 
 function parseIntParam(value: string | null, fallback = 0) {
@@ -32,9 +37,7 @@ function parseList(value: string | null) {
     .filter(Boolean);
 }
 
-function parseStockStatus(
-  value: string | null,
-): FilterState["availability"] {
+function parseStockStatus(value: string | null): FilterState["availability"] {
   if (!value || value === "") return undefined;
   return STOCK_STATUSES.includes(value as (typeof STOCK_STATUSES)[number])
     ? (value as FilterState["availability"])
@@ -91,7 +94,7 @@ export function serializeProductFilters(filters: FilterState): string {
   }
 
   if (filters.attributes.length) {
-    params.set("brands", filters.attributes.join(","));
+    params.set("attributes", filters.attributes.join(","));
   }
 
   if (isPriceFilterActive(filters.minPrice, filters.maxPrice)) {
