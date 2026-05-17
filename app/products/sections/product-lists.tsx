@@ -24,22 +24,25 @@ export default function ProductLists() {
   const {
     categories,
     isLoading: categoriesLoading,
+    isFetching: categoriesFetching,
     isError: categoriesError,
   } = useCategories();
   const {
     options: attributeOptions,
     attributes: filterAttributes,
     isLoading: attributesLoading,
+    isFetching: attributesFetching,
     isError: attributesError,
   } = useAttributeFilterOptions();
 
   const filterMetadata: FilterSidebarMetadata = {
     categories,
-    categoriesLoading,
+    categoriesLoading: categoriesLoading || (categoriesFetching && categories.length === 0),
     categoriesError,
     attributeOptions,
     filterAttributes,
-    attributesLoading,
+    attributesLoading:
+      attributesLoading || (attributesFetching && attributeOptions.length === 0),
     attributesError,
   };
 
@@ -74,11 +77,13 @@ export default function ProductLists() {
     attributeOptions,
   );
 
-  const { products, pagination, isLoading } = useProducts(productQueryParams, {
-    enabled: filterMetaReady,
-  });
+  const { products, pagination, isLoading, isFetching, isPlaceholderData } =
+    useProducts(productQueryParams, { enabled: filterMetaReady });
 
-  const showLoading = !filterMetaReady || isLoading;
+  const showLoading =
+    !filterMetaReady ||
+    isLoading ||
+    (isFetching && isPlaceholderData);
   const resultCount = pagination?.total ?? products.length;
 
   const categoryFilterKey = filters.categories.join(",");

@@ -3,7 +3,7 @@
 import { api } from "@/lib/http/woocommerce";
 import { ProductFilters } from "./products.client";
 import { handleServerError } from "@/lib/http/handleServerError";
-import { WooProduct } from "./product.type";
+import { WooProduct, WooProductStatus } from "./product.type";
 
 export async function getProducts(filters: ProductFilters = {}) {
   try {
@@ -22,6 +22,7 @@ export async function getProducts(filters: ProductFilters = {}) {
       orderby: filters.orderby || undefined,
       featured: filters.featured || undefined,
       on_sale: filters.on_sale || undefined,
+      status: filters.status || WooProductStatus.PUBLISH,
     });
 
     return {

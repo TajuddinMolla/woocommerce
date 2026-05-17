@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQueries, useQuery } from "@tanstack/react-query";
 import { getAttributeTerms, getAttributes } from "./attributes.server";
 import {
   AttributeFilterOption,
@@ -40,40 +40,36 @@ export function selectedAttributeKeysToApiParams(
   };
 }
 
-async function fetchAttributeFilterOptions(): Promise<AttributeFilterOption[]> {
-  const attributesResponse = await getAttributes();
-  if (!attributesResponse.success) {
-    throw new Error("Failed to fetch attributes");
+async function fetchAttributeTerms(
+  attributeId: number,
+): Promise<WooAttributeTerm[]> {
+  const response = await getAttributeTerms(attributeId);
+  if (!response.success) {
+    throw new Error("Failed to fetch attribute terms");
   }
-
-  const attributes = Array.isArray(attributesResponse.data)
-    ? (attributesResponse.data as WooProductAttribute[])
+  return Array.isArray(response.data)
+    ? (response.data as WooAttributeTerm[])
     : [];
+}
 
-  const termsByAttribute = await Promise.all(
-    attributes.map(async (attribute) => {
-      const termsResponse = await getAttributeTerms(attribute.id);
-      if (!termsResponse.success) return [];
+export function useAttributeTerms(
+  attributeId: number,
+  options?: { enabled?: boolean },
+) {
+  const query = useQuery({
+    queryKey: ["attribute-terms", attributeId],
+    queryFn: () => fetchAttributeTerms(attributeId),
+    enabled: options?.enabled !== false && attributeId > 0,
+  });
 
-      const terms = Array.isArray(termsResponse.data)
-        ? (termsResponse.data as WooAttributeTerm[])
-        : [];
-
-      return terms.map(
-        (term): AttributeFilterOption => ({
-          key: attributeFilterKey(attribute.slug, term.slug),
-          attributeId: attribute.id,
-          attributeSlug: attribute.slug,
-          attributeName: attribute.name,
-          termId: term.id,
-          termSlug: term.slug,
-          termName: term.name,
-        }),
-      );
-    }),
-  );
-
-  return termsByAttribute.flat();
+  return {
+    terms: query.data ?? [],
+    isLoading: query.isLoading,
+    isFetching: query.isFetching,
+    isError: query.isError,
+    error: query.error,
+    refetch: query.refetch,
+  };
 }
 
 export function useAttributes() {
@@ -101,27 +97,54 @@ export function useAttributes() {
 }
 
 export function useAttributeFilterOptions() {
-  const query = useQuery({
-    queryKey: ["attribute-filter-options"],
-    queryFn: fetchAttributeFilterOptions,
-    placeholderData: (previousData) => previousData,
+  const {
+    attributes: wooAttributes,
+    isLoading: attributesListLoading,
+    isFetching: attributesListFetching,
+    isError: attributesListError,
+  } = useAttributes();
+
+  const termQueries = useQueries({
+    queries: wooAttributes.map((attribute) => ({
+      queryKey: ["attribute-terms", attribute.id],
+      queryFn: () => fetchAttributeTerms(attribute.id),
+      enabled: wooAttributes.length > 0,
+    })),
   });
 
-  const options = query.data ?? [];
-  const attributes = [...new Map(
-    options.map((o) => [
-      o.attributeSlug,
-      { slug: o.attributeSlug, name: o.attributeName },
-    ]),
-  ).values()];
+  const options = wooAttributes.flatMap((attribute, index) => {
+    const terms = termQueries[index]?.data ?? [];
+    return terms.map(
+      (term): AttributeFilterOption => ({
+        key: attributeFilterKey(attribute.slug, term.slug),
+        attributeId: attribute.id,
+        attributeSlug: attribute.slug,
+        attributeName: attribute.name,
+        termId: term.id,
+        termSlug: term.slug,
+        termName: term.name,
+      }),
+    );
+  });
+
+  const filterAttributes = wooAttributes.map((attr) => ({
+    slug: attr.slug,
+    name: attr.name,
+  }));
+
+  const termsLoading = termQueries.some((q) => q.isLoading);
+  const termsFetching = termQueries.some((q) => q.isFetching);
+  const termsError = termQueries.some((q) => q.isError);
 
   return {
     options,
-    attributes,
-    isLoading: query.isLoading,
-    isFetching: query.isFetching,
-    isError: query.isError,
-    error: query.error,
-    refetch: query.refetch,
+    attributes: filterAttributes,
+    isLoading: attributesListLoading || termsLoading,
+    isFetching: attributesListFetching || termsFetching,
+    isError: attributesListError || termsError,
+    error: termQueries.find((q) => q.error)?.error,
+    refetch: () => {
+      termQueries.forEach((q) => void q.refetch());
+    },
   };
 }
