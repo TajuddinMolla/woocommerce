@@ -24,8 +24,6 @@ export async function getProducts(filters: ProductFilters = {}) {
       on_sale: filters.on_sale || undefined,
     });
 
-    console.log(response, "response.data");
-
     return {
       success: true,
       data: {
