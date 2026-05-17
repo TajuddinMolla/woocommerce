@@ -1,18 +1,19 @@
 import { useQuery } from "@tanstack/react-query";
-import { getProducts } from "./products.server";
+import { getProduct, getProducts } from "./products.server";
+import { WooProduct } from "./product.type";
 
 export type FilterState = {
-    search: string;
-    minPrice: number;
-    maxPrice: number;
-    orderby: string;
-    page: number;
-    order: string;
-    categories: string[];
-    attributes: string[];
-    availability: "instock" | "outofstock" | "onbackorder" | undefined;
-    view: string;
-  };
+  search: string;
+  minPrice: number;
+  maxPrice: number;
+  orderby: string;
+  page: number;
+  order: string;
+  categories: string[];
+  attributes: string[];
+  availability: "instock" | "outofstock" | "onbackorder" | undefined;
+  view: string;
+};
 
 export type ProductFilters = {
   context?: "view" | "edit";
@@ -93,6 +94,32 @@ export function useProducts(filters: ProductFilters = {}) {
     products: query.data?.products || [],
     pagination: query.data?.pagination,
 
+    isLoading: query.isLoading,
+    isFetching: query.isFetching,
+    isError: query.isError,
+    error: query.error,
+
+    refetch: query.refetch,
+  };
+}
+
+export function useProduct(slug: string) {
+  const query = useQuery({
+    queryKey: ["product", slug],
+    queryFn: async (): Promise<WooProduct> => {
+      const response = await getProduct(slug);
+      if (!response.success || !("data" in response) || !response.data) {
+        throw new Error(
+          "message" in response ? response.message : "Failed to fetch product",
+        );
+      }
+      return response.data;
+    },
+    enabled: !!slug,
+  });
+
+  return {
+    product: query.data,
     isLoading: query.isLoading,
     isFetching: query.isFetching,
     isError: query.isError,

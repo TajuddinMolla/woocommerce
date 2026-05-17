@@ -10,7 +10,7 @@ export async function getProducts(filters: ProductFilters = {}) {
     const response = await api.get("products", {
       search: filters.search,
       page: filters.page || 1,
-      per_page: filters.per_page ,
+      per_page: filters.per_page,
       category: filters.category || undefined,
       tag: filters.tag || undefined,
       attribute: filters.attribute || undefined,
@@ -38,5 +38,26 @@ export async function getProducts(filters: ProductFilters = {}) {
     };
   } catch (error) {
     return handleServerError(error, "Failed to fetch products");
+  }
+}
+
+export async function getProduct(slug: string) {
+  try {
+    const response = await api.get("products", { slug });
+    const products = response.data as WooProduct[];
+
+    if (!products?.length) {
+      return {
+        success: false,
+        message: "Product not found",
+      };
+    }
+
+    return {
+      success: true,
+      data: products[0],
+    };
+  } catch (error) {
+    return handleServerError(error, "Failed to fetch product");
   }
 }
