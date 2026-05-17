@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/select";
 import { LayoutGrid, List } from "lucide-react";
 import { FilterState } from "@/services/products/products.client";
+import { MobileFilterSheet } from "./mobile-filter-sheet";
 
 const SORT_OPTIONS = [
   { value: "popular", label: "Most Popular" },
@@ -19,7 +20,10 @@ const SORT_OPTIONS = [
 
 type Props = {
   filters: FilterState;
-  setFilters: (u: Partial<FilterState>) => void;
+  setFilters: (
+    u: Partial<FilterState> | ((p: FilterState) => FilterState),
+  ) => void;
+  clearAll: () => void;
   total: number;
   filtered: number;
 };
@@ -27,22 +31,30 @@ type Props = {
 export function ProductToolbar({
   filters,
   setFilters,
+  clearAll,
   total,
   filtered,
 }: Props) {
   return (
     <div className="flex items-center justify-between gap-3 pb-3 border-b border-stone-300">
-      <p className="text-sm text-muted-foreground">
-        <span className="font-semibold text-foreground">{filtered}</span>
-        {filtered !== total && <span> of {total}</span>} product
-        {filtered !== 1 ? "s" : ""}
-      </p>
-      <div className="flex items-center gap-2">
+      <div className="flex min-w-0 items-center gap-2">
+        <MobileFilterSheet
+          filters={filters}
+          setFilters={setFilters}
+          clearAll={clearAll}
+        />
+        <p className="text-sm text-muted-foreground truncate">
+          <span className="font-semibold text-foreground">{filtered}</span>
+          {filtered !== total && <span> of {total}</span>} product
+          {filtered !== 1 ? "s" : ""}
+        </p>
+      </div>
+      <div className="flex shrink-0 items-center gap-2">
         <Select
           value={filters.orderby}
           onValueChange={(v) => setFilters({ orderby: v, page: 1 })}
         >
-          <SelectTrigger className="h-9 w-44 text-sm">
+          <SelectTrigger className="h-9 w-36 sm:w-44 text-sm">
             <SelectValue placeholder="Sort by" />
           </SelectTrigger>
           <SelectContent className="bg-background">

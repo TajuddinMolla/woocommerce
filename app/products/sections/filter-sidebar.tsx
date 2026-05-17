@@ -70,7 +70,7 @@ export function FilterSidebar({ filters, setFilters, clearAll }: Props) {
 
   return (
     <aside className="w-full space-y-1">
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mt-4 lg:mt-0 mb-4 ">
         <h2 className="text-base font-bold text-foreground">Filters</h2>
         {hasFilters && (
           <button

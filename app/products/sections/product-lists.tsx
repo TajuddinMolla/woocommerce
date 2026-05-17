@@ -112,6 +112,7 @@ export default function ProductLists() {
             <ProductToolbar
               filters={filters}
               setFilters={updateFilters}
+              clearAll={clearAll}
               total={PRODUCTS.length}
               filtered={filtered.length}
             />
@@ -138,7 +139,7 @@ export default function ProductLists() {
                 <div
                   className={
                     filters.view === "grid"
-                      ? "grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-4"
+                      ? "grid md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4"
                       : "flex flex-col gap-3 mt-4"
                   }
                 >
