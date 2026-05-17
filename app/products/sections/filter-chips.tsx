@@ -1,8 +1,8 @@
 "use client";
 import { X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { PRICE_RANGE } from "@/data/products";
 import { FilterState } from "@/services/products/products.client";
+import { isPriceFilterActive } from "@/utils/filterProducts";
 
 type Chip = { label: string; onRemove: () => void };
 
@@ -45,11 +45,11 @@ export function FilterChips({ filters, setFilters, clearAll, total }: Props) {
         })),
     }),
   );
-  if (filters.minPrice !== 0 || filters.maxPrice !== PRICE_RANGE.max) {
+  if (isPriceFilterActive(filters.minPrice, filters.maxPrice)) {
+    const maxLabel = filters.maxPrice === 0 ? "∞" : `$${filters.maxPrice}`;
     chips.push({
-      label: `$${filters.minPrice}–$${filters.maxPrice}`,
-      onRemove: () =>
-        setFilters({ minPrice: 0, maxPrice: PRICE_RANGE.max, page: 1 }),
+      label: `$${filters.minPrice}–${maxLabel}`,
+      onRemove: () => setFilters({ minPrice: 0, maxPrice: 0, page: 1 }),
     });
   }
   // if (filters.rating > 0)

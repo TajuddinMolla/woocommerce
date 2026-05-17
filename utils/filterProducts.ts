@@ -1,6 +1,10 @@
 import { Product } from "@/data/products";
 import { FilterState } from "@/services/products/products.client";
 
+export function isPriceFilterActive(minPrice: number, maxPrice: number) {
+  return minPrice !== 0 || maxPrice !== 0;
+}
+
 export function filterAndSortProducts(
   products: Product[],
   filters: FilterState,
@@ -26,11 +30,14 @@ export function filterAndSortProducts(
     result = result.filter((p) => filters.attributes.includes(p.brand));
   }
 
-  result = result.filter(
-    (p) => p.price >= filters.minPrice && p.price <= filters.maxPrice,
-  );
+  if (isPriceFilterActive(filters.minPrice, filters.maxPrice)) {
+    result = result.filter((p) => {
+      if (filters.minPrice !== 0 && p.price < filters.minPrice) return false;
+      if (filters.maxPrice !== 0 && p.price > filters.maxPrice) return false;
+      return true;
+    });
+  }
 
-   
 
   if (filters.availability === "instock") {
     result = result.filter((p) => p.availability === "in-stock");

@@ -6,6 +6,7 @@ import { BRANDS, CATEGORIES, PRICE_RANGE } from "@/data/products";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Slider } from "@/components/ui/slider";
 import { FilterState } from "@/services/products/products.client";
+import { isPriceFilterActive } from "@/utils/filterProducts";
 
 type SectionProps = {
   title: string;
@@ -62,8 +63,7 @@ export function FilterSidebar({ filters, setFilters, clearAll }: Props) {
     filters.search ||
     filters.categories.length ||
     filters.attributes.length ||
-    filters.minPrice !== 0 ||
-    filters.maxPrice !== PRICE_RANGE.max;
+    isPriceFilterActive(filters.minPrice, filters.maxPrice);
 
   return (
     <aside className="w-full space-y-1">
@@ -231,14 +231,10 @@ export function FilterSidebar({ filters, setFilters, clearAll }: Props) {
                 <input
                   type="radio"
                   name="availability"
-                  checked={filters.availability === v}
+                  checked={(filters.availability ?? "") === v}
                   onChange={() =>
                     setFilters({
-                      availability: v as
-                        | "instock"
-                        | "outofstock"
-                        | "onbackorder"
-                        | undefined,
+                      availability: v || undefined,
                       page: 1,
                     })
                   }

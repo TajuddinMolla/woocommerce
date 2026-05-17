@@ -1,44 +1,44 @@
 "use client";
-import { useCallback, useState } from "react";
-import { Product, PRODUCTS } from "@/data/products";
-import { filterAndSortProducts } from "@/utils/filterProducts";
+import { PRODUCTS } from "@/data/products";
+import {
+  filterAndSortProducts,
+  isPriceFilterActive,
+} from "@/utils/filterProducts";
 import { EmptyState } from "./empty-state";
 import { FilterSidebar } from "./filter-sidebar";
 import { Pagination } from "./pagination";
 import { FilterChips } from "./filter-chips";
 import { ProductToolbar } from "./product-toolbar";
 import { ProductCard } from "./product-card";
-import {
-  ProductFilters,
-  useProducts,
-} from "@/services/products/products.client";
+import { useProducts } from "@/services/products/products.client";
 import { useDebounce } from "@/hooks/useDebounce";
+import { useProductFilters } from "@/hooks/useProductFilters";
 import { ProductCardSkeleton } from "./product-card-skeleton";
 
 const PAGE_SIZE = 12;
 
 export default function ProductLists() {
-  const [filters, setFilters] = useState({
-    search: "",
-    minPrice: 0,
-    maxPrice: 0,
-    orderby: "",
-    page: 1,
-    order: "desc",
-    categories: [] as string[],
-    attributes: [] as string[],
-    view: "grid",
-    availability: "" as "instock" | "outofstock" | "onbackorder" | undefined,
-  });
+  const { filters, updateFilters, clearAll } = useProductFilters();
 
   const debouncedSearch = useDebounce(filters.search, 500);
   const debouncedMinPrice = useDebounce(filters.minPrice, 500);
   const debouncedMaxPrice = useDebounce(filters.maxPrice, 500);
 
+  const priceFilterActive = isPriceFilterActive(
+    debouncedMinPrice,
+    debouncedMaxPrice,
+  );
+
   const { products, pagination, isLoading } = useProducts({
     search: debouncedSearch,
-    min_price: debouncedMinPrice.toString(),
-    max_price: debouncedMaxPrice > 0 ? debouncedMaxPrice.toString() : undefined,
+    min_price:
+      priceFilterActive && debouncedMinPrice > 0
+        ? debouncedMinPrice.toString()
+        : undefined,
+    max_price:
+      priceFilterActive && debouncedMaxPrice > 0
+        ? debouncedMaxPrice.toString()
+        : undefined,
     orderby: filters.orderby,
     page: filters.page,
     per_page: PAGE_SIZE,
@@ -54,30 +54,7 @@ export default function ProductLists() {
       : undefined,
   });
 
-  console.log(products, "products");
-  console.log(pagination, "pagination");
-  console.log(isLoading, "isLoading");
-
-  const clearAll = useCallback(() => {
-    setFilters({
-      search: "",
-      minPrice: 0,
-      maxPrice: 0,
-      orderby: "",
-      page: 1,
-      order: "desc",
-      categories: [] as string[],
-      attributes: [] as string[],
-      view: "grid" as "grid" | "list",
-      availability: "" as "instock" | "outofstock" | "onbackorder" | undefined,
-    });
-  }, []);
-
   const filtered = filterAndSortProducts(PRODUCTS, filters);
-  const paged = filtered.slice(
-    (filters.page - 1) * PAGE_SIZE,
-    filters.page * PAGE_SIZE,
-  );
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -88,7 +65,7 @@ export default function ProductLists() {
             <div className="sticky top-[105px]">
               <FilterSidebar
                 filters={filters}
-                setFilters={(u) => setFilters({ ...filters, ...u })}
+                setFilters={updateFilters}
                 clearAll={clearAll}
               />
             </div>
@@ -98,13 +75,13 @@ export default function ProductLists() {
           <div className="flex-1 min-w-0">
             <FilterChips
               filters={filters}
-              setFilters={(u) => setFilters({ ...filters, ...u })}
+              setFilters={updateFilters}
               clearAll={clearAll}
               total={PRODUCTS.length}
             />
             <ProductToolbar
               filters={filters}
-              setFilters={(u) => setFilters({ ...filters, ...u })}
+              setFilters={updateFilters}
               total={PRODUCTS.length}
               filtered={filtered.length}
             />
@@ -147,7 +124,7 @@ export default function ProductLists() {
                 <Pagination
                   page={filters.page}
                   totalPages={pagination?.totalPages ?? 0}
-                  onChange={(p) => setFilters({ ...filters, page: p })}
+                  onChange={(p) => updateFilters({ page: p })}
                 />
               </>
             )}
