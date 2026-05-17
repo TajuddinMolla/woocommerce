@@ -128,7 +128,7 @@ export function FilterSidebar({ filters, setFilters, clearAll }: Props) {
       </Section>
 
       {/* Brand */}
-      <Section title="Brand" defaultOpen={false}>
+      {/* <Section title="Brand" defaultOpen={false}>
         <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
           {BRANDS.map((brand) => (
             <label
@@ -145,7 +145,7 @@ export function FilterSidebar({ filters, setFilters, clearAll }: Props) {
             </label>
           ))}
         </div>
-      </Section>
+      </Section> */}
 
       {/* Price Range */}
       <Section title="Price Range">
@@ -234,7 +234,7 @@ export function FilterSidebar({ filters, setFilters, clearAll }: Props) {
       {/* Availability */}
       <Section title="Availability" defaultOpen={false}>
         <div className="space-y-2">
-          {(["", "instock", "outofstock", "onbackorder"] as const).map((v) => {
+          {(["", "instock", "outofstock"] as const).map((v) => {
             const label =
               v === "" ? "All" : v === "instock" ? "In Stock" : "Out of Stock";
             return (
