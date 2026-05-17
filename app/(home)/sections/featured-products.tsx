@@ -24,8 +24,7 @@ function filterProducts(
       const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
       return products.filter(
         (p) =>
-          p.date_created &&
-          new Date(p.date_created).getTime() > thirtyDaysAgo,
+          p.date_created && new Date(p.date_created).getTime() > thirtyDaysAgo,
       );
     }
     default:
@@ -34,14 +33,10 @@ function filterProducts(
 }
 
 export default function FeaturedProducts() {
-  const [activeFilter, setActiveFilter] = useState("All");
-
   const { products, isLoading, isError } = useProducts({
     featured: true,
     per_page: FEATURED_LIMIT,
   });
-
-  const filtered = filterProducts(products, activeFilter);
 
   return (
     <section id="featured" className="py-20 bg-stone-50">
@@ -58,22 +53,12 @@ export default function FeaturedProducts() {
               Featured Pieces
             </h2>
           </div>
-
-          <div className="flex gap-2 flex-wrap">
-            {filters.map((f) => (
-              <button
-                key={f}
-                onClick={() => setActiveFilter(f)}
-                className={`px-5 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
-                  activeFilter === f
-                    ? "bg-stone-900 text-white shadow-md"
-                    : "bg-white text-stone-600 border border-stone-200 hover:border-stone-400"
-                }`}
-              >
-                {f}
-              </button>
-            ))}
-          </div>
+          <Link
+            href="/products"
+            className="hidden sm:inline-flex text-sm font-medium text-stone-600 hover:text-stone-900 underline underline-offset-4 transition-colors"
+          >
+            View all products
+          </Link>
         </div>
 
         {isLoading ? (
@@ -86,13 +71,13 @@ export default function FeaturedProducts() {
           <p className="text-center text-stone-500 py-12">
             Unable to load featured products. Please try again later.
           </p>
-        ) : filtered.length === 0 ? (
+        ) : products.length === 0 ? (
           <p className="text-center text-stone-500 py-12">
             No products match this filter.
           </p>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-            {filtered.map((product) => (
+            {products.map((product) => (
               <ProductCard
                 key={product.id}
                 product={product}

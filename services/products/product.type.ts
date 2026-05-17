@@ -10,6 +10,7 @@ export type WooCategory = {
   name: string;
   slug: string;
   parent?: number;
+  count?: number;
 };
 
 export type WooProduct = {
